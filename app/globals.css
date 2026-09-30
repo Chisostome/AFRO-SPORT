@@ -10,3 +10,5 @@
 @media(max-width:700px){.group-grid{grid-template-columns:1fr}.bracket-grid{grid-template-columns:1fr}}
 
 .admin-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr)) auto;gap:10px;align-items:center}.row-actions{display:flex;gap:6px}.row-actions button{padding:6px 9px;border-radius:8px;border:1px solid rgba(255,255,255,.12);background:transparent;color:inherit;cursor:pointer}.row-actions button:hover{background:rgba(255,255,255,.08)}
+
+.builder-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin-top:16px}.builder-card{border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:16px;background:rgba(255,255,255,.02)}.builder-card h3{margin:0 0 10px}.muted{opacity:.7}@media(max-width:700px){.builder-grid{grid-template-columns:1fr}}
