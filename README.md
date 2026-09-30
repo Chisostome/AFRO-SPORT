@@ -1,6 +1,6 @@
 # AFRO SPORT
 
-African Football Platform built with Next.js + Supabase.
+African Football Platform built with HTML, CSS, JavaScript, Supabase, and GitHub Pages.
 
 ## Mfumo
 
@@ -13,23 +13,20 @@ African Football Platform built with Next.js + Supabase.
 - **Standings & top scorers:** zinatokana na matokeo na match events zilizokamilika.
 - **Admin:** kusimamia mashindano, stages, groups, teams, players, fixtures, results, knockout na habari.
 
-## Kuunganisha Supabase
+## Deployment
 
-Weka variables hizi kwenye `.env.local`:
+AFRO SPORT inatumia **GitHub Pages** pekee.
 
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- Frontend: `docs/`
+- Deployment workflow: `.github/workflows/pages.yml`
+- Hosting: GitHub Pages
+- Supabase: database, authentication na realtime
 
-Mfano upo kwenye `.env.example`.
+Hakuna Vercel inayohitajika kwa deployment ya sasa.
 
-## Kuendesha
+## Supabase
 
-```bash
-npm install
-npm run dev
-```
-
-Kisha fungua `/` kwa dashboard na `/admin` kwa usimamizi.
+Frontend hutumia Supabase publishable key kupitia `docs/config.js`. Service-role key haijawekwa kwenye frontend.
 
 ## Muundo wa data
 
