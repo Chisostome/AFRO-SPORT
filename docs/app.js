@@ -120,6 +120,14 @@ async function newsDetail(id){
  if(r.error)return shell("Habari",errBox(r.error));
  shell(esc(r.data.title),'<article class="card"><div class="tag">'+esc(r.data.category||"Habari")+' · '+fmt(r.data.published_at)+'</div><p>'+esc(r.data.summary||"")+'</p><div style="white-space:pre-wrap;line-height:1.8">'+esc(r.data.content||"")+'</div></article>');
 }
+async function adminMatches(){
+ const {data:{session}}=await db.auth.getSession(); if(!session)return admin();
+ const leagues=(await db.from("leagues").select("id,name").order("name")).data||[], teams=(await db.from("teams").select("id,name,league_id").order("name")).data||[];
+ shell("Admin · Mechi",'<div class="cards"><div class="card"><h2>Tengeneza Fixture</h2><form id="matchForm" class="form"><select id="mLeague" required><option value="">Mashindano</option>'+leagues.map(x=>'<option value="'+x.id+'">'+esc(x.name)+'</option>').join("")+'</select><select id="mHome" required><option value="">Home</option>'+teams.map(x=>'<option value="'+x.id+'">'+esc(x.name)+'</option>').join("")+'</select><select id="mAway" required><option value="">Away</option>'+teams.map(x=>'<option value="'+x.id+'">'+esc(x.name)+'</option>').join("")+'</select><input id="mDate" type="datetime-local" required><input id="mVenue" placeholder="Uwanja"><input id="mRound" placeholder="Round / Stage"><button class="btn">Hifadhi Fixture</button><div id="matchMsg"></div></form></div><div class="card"><h2>Weka Matokeo</h2><form id="resultForm" class="form"><select id="rMatch" required><option value="">Chagua mechi</option></select><input id="rHome" type="number" min="0" value="0" required><input id="rAway" type="number" min="0" value="0" required><input id="rHP" type="number" min="0" placeholder="Home penalties (optional)"><input id="rAP" type="number" min="0" placeholder="Away penalties (optional)"><button class="btn">Maliza Mechi</button><div id="resultMsg"></div></form></div></div>');
+ const load=async()=>{const x=await db.from("matches").select("id,scheduled_at,home_score,away_score,status,home_team:teams!matches_home_team_id_fkey(name),away_team:teams!matches_away_team_id_fkey(name)").neq("status","finished").order("scheduled_at");rMatch.innerHTML='<option value="">Chagua mechi</option>'+(x.data||[]).map(m=>'<option value="'+m.id+'">'+esc(m.home_team?.name)+' vs '+esc(m.away_team?.name)+' · '+fmt(m.scheduled_at)+'</option>').join("")}; await load();
+ matchForm.onsubmit=async e=>{e.preventDefault();if(mHome.value===mAway.value)return matchMsg.textContent="Home na Away lazima zitofautiane.";const x=await db.from("matches").insert({league_id:mLeague.value,home_team_id:mHome.value,away_team_id:mAway.value,scheduled_at:new Date(mDate.value).toISOString(),venue:mVenue.value.trim(),round_name:mRound.value.trim(),status:"scheduled",home_score:0,away_score:0}).select("id").single();matchMsg.textContent=x.error?x.error.message:"Fixture imehifadhiwa.";if(!x.error)load()};
+ resultForm.onsubmit=async e=>{e.preventDefault();const x=await db.rpc("record_match_result",{p_match_id:rMatch.value,p_home_score:Number(rHome.value),p_away_score:Number(rAway.value),p_home_penalties:rHP.value===""?null:Number(rHP.value),p_away_penalties:rAP.value===""?null:Number(rAP.value)});resultMsg.textContent=x.error?x.error.message:"Matokeo yamehifadhiwa na standings/progression zimesasishwa.";if(!x.error){await load();rHome.value=0;rAway.value=0}};
+}
 async function admin(){
  const {data:{session}}=await db.auth.getSession();
  if(!session){shell("Admin",'<div class="card"><h2>Ingia Admin</h2><form id="loginForm" class="form"><input id="email" type="email" placeholder="Email" required><input id="password" type="password" placeholder="Password" required><button class="btn">Ingia</button><div id="authMsg"></div></form></div>');document.getElementById("loginForm").onsubmit=async e=>{e.preventDefault();const r=await db.auth.signInWithPassword({email:email.value,password:password.value});if(r.error)authMsg.textContent=r.error.message;else route()};return}
@@ -148,6 +156,7 @@ async function route(){
   if(p[0]==="statistics")return statistics();
   if(p[0]==="news"&&!p[1])return news();
   if(p[0]==="news")return newsDetail(p[1]);
+  if(p[0]==="admin"&&p[1]==="matches")return adminMatches();
   if(p[0]==="admin")return admin();
   return dashboard();
  }catch(e){shell("AFRO SPORT",errBox(e))}
