@@ -16,3 +16,14 @@
 
 .builder-team-picker{margin-top:8px;padding:12px;border:1px solid #ddd;border-radius:12px}.team-check-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;margin:10px 0}.team-check-grid label{display:flex;gap:7px;align-items:center;padding:8px;border:1px solid #eee;border-radius:8px}.team-check-grid input{accent-color:currentColor}
 .live-score-admin{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-top:14px;padding:14px;border:1px solid #eee;border-radius:12px;font-size:18px}.live-score-admin span{font-variant-numeric:tabular-nums}
+
+.formation-block{margin-top:18px}
+.football-pitch{position:relative;width:100%;max-width:720px;aspect-ratio:68/105;margin:12px auto;border:3px solid #fff;border-radius:14px;background:linear-gradient(90deg,#18794e,#1f8b5a);overflow:hidden;box-shadow:inset 0 0 0 1px rgba(0,0,0,.15)}
+.football-pitch:before,.football-pitch:after{content:"";position:absolute;left:0;right:0;border:2px solid rgba(255,255,255,.85)}
+.football-pitch:before{top:12%;height:18%}
+.football-pitch:after{bottom:12%;height:18%}
+.pitch-line.center{position:absolute;left:0;right:0;top:50%;border-top:2px solid rgba(255,255,255,.85)}
+.pitch-circle{position:absolute;left:50%;top:50%;width:22%;aspect-ratio:1;border:2px solid rgba(255,255,255,.85);border-radius:50%;transform:translate(-50%,-50%)}
+.pitch-player{position:absolute;transform:translate(-50%,-50%);width:42px;height:42px;border-radius:50%;background:#fff;color:#111;display:flex;align-items:center;justify-content:center;font-weight:800;border:2px solid rgba(0,0,0,.25);box-shadow:0 2px 5px rgba(0,0,0,.25)}
+.pitch-player small{position:absolute;top:42px;white-space:nowrap;font-size:11px;color:#fff;text-shadow:0 1px 2px #000}
+@media(max-width:640px){.pitch-player{width:34px;height:34px;font-size:12px}.pitch-player small{top:34px;font-size:9px}}
