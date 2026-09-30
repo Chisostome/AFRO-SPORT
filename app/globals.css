@@ -27,3 +27,5 @@
 .pitch-player{position:absolute;transform:translate(-50%,-50%);width:42px;height:42px;border-radius:50%;background:#fff;color:#111;display:flex;align-items:center;justify-content:center;font-weight:800;border:2px solid rgba(0,0,0,.25);box-shadow:0 2px 5px rgba(0,0,0,.25)}
 .pitch-player small{position:absolute;top:42px;white-space:nowrap;font-size:11px;color:#fff;text-shadow:0 1px 2px #000}
 @media(max-width:640px){.pitch-player{width:34px;height:34px;font-size:12px}.pitch-player small{top:34px;font-size:9px}}
+
+.admin-pitch{max-width:520px}.draggable-player{cursor:grab}.draggable-player:active{cursor:grabbing}.formation-editor{margin:14px 0}
