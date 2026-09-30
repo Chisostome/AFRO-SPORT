@@ -100,13 +100,22 @@ async function matches(){
 }
 
 async function match(id){
- const [r,e]=await Promise.all([
+ const [r,e,l]=await Promise.all([
   db.from("matches").select("*,home_team:teams!matches_home_team_id_fkey(name),away_team:teams!matches_away_team_id_fkey(name),leagues(name),competition_stages(name)").eq("id",id).single(),
-  db.from("match_events").select("*,players:player_id(name),teams:team_id(name)").eq("match_id",id).order("minute").order("added_time")
+  db.from("match_events").select("*,players:player_id(name),teams:team_id(name)").eq("match_id",id).order("minute").order("added_time"),
+  db.from("match_lineups").select("*,team:teams!match_lineups_team_id_fkey(name),match_lineup_players(*,player:players!match_lineup_players_player_id_fkey(name))").eq("match_id",id)
  ]);
  if(r.error)return shell("Mechi",errBox(r.error));
- const events=(e.data||[]).map(x=>'<div class="row"><span><b>'+esc(x.event_type)+'</b><small>'+esc(x.minute||"")+(x.added_time? "+"+x.added_time:"")+"' · "+esc(x.players?.name||"")+'</small></span><span>'+esc(x.teams?.name||"")+'</span></div>').join("")||'<div class="empty">Hakuna events.</div>';
- shell(esc(r.data.home_team?.name)+" vs "+esc(r.data.away_team?.name),'<div class="detail"><section class="card"><div class="tag">'+esc(r.data.status)+'</div><div class="score">'+(r.data.home_score??0)+' — '+(r.data.away_score??0)+'</div><p>'+fmt(r.data.scheduled_at)+'</p><p>'+esc(r.data.leagues?.name||"")+' · '+esc(r.data.competition_stages?.name||r.data.round_name||"")+'</p></section><section class="card"><h2>Events</h2><div class="list">'+events+'</div></section></div>');
+ const render=()=>{
+  const x=r.data, events=e.data||[], lineups=l.data||[];
+  const ev=events.map(z=>'<div class="row"><span><b>'+esc(z.event_type)+'</b><small>'+esc(z.minute||"")+(z.added_time?"+ "+z.added_time:"")+"' · "+esc(z.players?.name||"")+'</small></span><span>'+esc(z.teams?.name||"")+'</span></div>').join("")||'<div class="empty">Hakuna events.</div>';
+  const lu=lineups.map(z=>'<div class="card"><h3>'+esc(z.team?.name||"Lineup")+'</h3><p>Formation: '+esc(z.formation||"—")+' · Captain: '+esc((z.match_lineup_players||[]).find(q=>q.player_id===z.captain_player_id)?.player?.name||"—")+'</p><div class="list">'+(z.match_lineup_players||[]).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0)).map(q=>'<div class="row"><span><b>'+esc(q.player?.name||"")+'</b><small>'+esc(q.position||"")+'</small></span><span>'+ (q.starter?"Starter":"Sub") +'</span></div>').join("")+'</div></div>').join("");
+  const timer=(x.status==="live"||x.status==="halftime")?'<div id="liveClock" class="tag">LIVE</div>':"";
+  shell(esc(x.home_team?.name)+" vs "+esc(x.away_team?.name),'<div class="detail"><section class="card"><div class="tag">'+esc(x.status)+'</div><div class="score">'+esc(x.home_team?.name)+' <b>'+(x.home_score??0)+' — '+(x.away_score??0)+'</b> '+esc(x.away_team?.name)+'</div>'+timer+'<p>'+fmt(x.scheduled_at)+'</p><p>'+esc(x.leagues?.name||"")+' · '+esc(x.competition_stages?.name||x.round_name||"")+'</p></section><section class="card"><h2>Timeline</h2><div class="list">'+ev+'</div></section><section class="card"><h2>Lineups</h2><div class="cards">'+(lu||'<div class="empty">Lineups bado hazijawekwa.</div>')+'</div></section></div>');
+ };
+ render();
+ const channel=db.channel("match-"+id).on("postgres_changes",{event:"*",schema:"public",table:"matches",filter:"id=eq."+id},()=>match(id)).on("postgres_changes",{event:"*",schema:"public",table:"match_events",filter:"match_id=eq."+id},()=>match(id)).on("postgres_changes",{event:"*",schema:"public",table:"match_lineups",filter:"match_id=eq."+id},()=>match(id)).subscribe();
+ setTimeout(()=>db.removeChannel(channel),300000);
 }
 
 async function statistics(){return listPage("competition_top_scorers","Top Scorers","player_id,player_name,team_name,goals",x=>"#/players/"+x.player_id)}
