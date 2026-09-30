@@ -8,3 +8,5 @@
 .tie-card small{display:block;opacity:.65;margin-bottom:10px}.tie-card div{padding:9px 0;border-bottom:1px solid rgba(255,255,255,.06)}
 .tie-card .winner{font-weight:800}.tie-card strong{display:block;margin-top:10px}
 @media(max-width:700px){.group-grid{grid-template-columns:1fr}.bracket-grid{grid-template-columns:1fr}}
+
+.admin-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr)) auto;gap:10px;align-items:center}.row-actions{display:flex;gap:6px}.row-actions button{padding:6px 9px;border-radius:8px;border:1px solid rgba(255,255,255,.12);background:transparent;color:inherit;cursor:pointer}.row-actions button:hover{background:rgba(255,255,255,.08)}
