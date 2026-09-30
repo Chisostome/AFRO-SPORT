@@ -75,17 +75,22 @@ async function team(id){
  shell(esc(t.data.name),'<div class="detail"><section class="card"><div class="tag">'+esc(t.data.leagues?.name||"")+'</div><h2>'+esc(t.data.short_name||"")+'</h2><p>'+esc(t.data.city||"")+'</p><h2>Wachezaji</h2><div class="list">'+(p.data||[]).map(x=>'<a class="row" href="#/players/'+x.id+'"><span><b>'+esc(x.name)+'</b><small>'+esc(x.position||"")+'</small></span><strong>#'+(x.jersey_number||"—")+'</strong></a>').join("")+'</div></section><section class="card"><h2>Mechi</h2><div class="list">'+(m.data||[]).map(x=>'<a class="row" href="#/matches/'+x.id+'"><span><b>'+esc(x.home_team?.name)+' — '+esc(x.away_team?.name)+'</b><small>'+fmt(x.scheduled_at)+'</small></span><strong>'+((x.status==="scheduled")?"VS":(x.home_score??0)+" - "+(x.away_score??0))+'</strong></a>').join("")+'</div></section></div>');
 }
 
-async function players(){return listPage("players","Wachezaji","id,name,position,jersey_number,teams(name)",x=>"#/players/"+x.id)}
+async function players(){
+ const r=await db.from("players").select("id,name,position,jersey_number,teams(name)").order("name").limit(200);
+ if(r.error)return shell("Wachezaji",errBox(r.error));
+ shell("Wachezaji",'<div class="cards">'+(r.data||[]).map(x=>'<a class="card" href="#/players/'+x.id+'"><h2>'+esc(x.name)+'</h2><p>'+esc(x.position||"")+' · #'+esc(x.jersey_number||"—")+'</p><small>'+esc(x.teams?.name||"")+'</small></a>').join("")+'</div>');
+}
 
 async function player(id){
  const [p,s,a]=await Promise.all([
-  db.from("players").select("*,teams(name),player_competition_stats(*)").eq("id",id).single(),
-  db.from("player_match_appearances").select("*").eq("player_id",id).limit(20),
-  db.from("match_events").select("event_type,minute,match_id").eq("player_id",id).order("created_at",{ascending:false}).limit(30)
+  db.from("players").select("*,teams(name)").eq("id",id).single(),
+  db.from("player_competition_stats").select("*").eq("player_id",id).order("goals",{ascending:false}),
+  db.from("player_match_appearances").select("*").eq("player_id",id).limit(20)
  ]);
  if(p.error)return shell("Mchezaji",errBox(p.error));
- const stats=(p.data.player_competition_stats||[]).map(x=>'<div class="row"><span><b>'+esc(x.competition_id)+'</b><small>'+x.event_matches+' matches · '+x.assists+' assists · '+x.yellow_cards+' yellow · '+x.red_cards+' red</small></span><strong>'+x.goals+' ⚽</strong></div>').join("")||'<div class="empty">Hakuna stats za matukio.</div>';
- shell(esc(p.data.name),'<div class="detail"><section class="card"><div class="tag">'+esc(p.data.position||"")+'</div><h2>'+esc(p.data.teams?.name||"")+'</h2><p>Namba '+esc(p.data.jersey_number||"—")+'</p><h2>Competition Stats</h2><div class="list">'+stats+'</div></section><section class="card"><h2>Recent appearances</h2><p>'+((a.data||[]).length)+' appearances zilizorekodiwa.</p><h2>Events</h2><div class="list">'+(a.data||[]).slice(0,12).map(x=>'<div class="row"><span><b>'+esc(x.event_type)+'</b><small>Match '+esc(x.match_id)+' · '+esc(x.minute||"")+"'</small></span></div>').join("")+'</div></section></div>');
+ const stats=(s.data||[]).map(x=>'<div class="row"><span><b>'+esc(x.team_name||"Competition")+'</b><small>'+x.event_matches+' matches · '+x.assists+' assists · '+x.yellow_cards+' yellow · '+x.red_cards+' red</small></span><strong>'+x.goals+' ⚽</strong></div>').join("")||'<div class="empty">Hakuna stats za matukio.</div>';
+ const events=await db.from("match_events").select("event_type,minute,match_id").eq("player_id",id).order("created_at",{ascending:false}).limit(30);
+ shell(esc(p.data.name),'<div class="detail"><section class="card"><div class="tag">'+esc(p.data.position||"")+'</div><h2>'+esc(p.data.teams?.name||"")+'</h2><p>Namba '+esc(p.data.jersey_number||"—")+'</p><h2>Competition Stats</h2><div class="list">'+stats+'</div></section><section class="card"><h2>Recent appearances</h2><p>'+((a.data||[]).length)+' appearances zilizorekodiwa.</p><h2>Events</h2><div class="list">'+(events.data||[]).slice(0,12).map(x=>'<div class="row"><span><b>'+esc(x.event_type)+'</b><small>Match '+esc(x.match_id)+' · '+esc(x.minute||"")+"'</small></span></div>").join("")+'</div></section></div>');
 }
 
 async function matches(){
