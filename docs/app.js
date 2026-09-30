@@ -120,6 +120,27 @@ async function newsDetail(id){
  if(r.error)return shell("Habari",errBox(r.error));
  shell(esc(r.data.title),'<article class="card"><div class="tag">'+esc(r.data.category||"Habari")+' · '+fmt(r.data.published_at)+'</div><p>'+esc(r.data.summary||"")+'</p><div style="white-space:pre-wrap;line-height:1.8">'+esc(r.data.content||"")+'</div></article>');
 }
+async function adminLive(id){
+ const {data:{session}}=await db.auth.getSession(); if(!session)return admin();
+ const m=await db.from("matches").select("id,status,home_score,away_score,home_team_id,away_team_id,home_team:teams!matches_home_team_id_fkey(name),away_team:teams!matches_away_team_id_fkey(name)").eq("id",id).single();
+ if(m.error)return shell("Live Match",errBox(m.error));
+ const players=(await db.from("players").select("id,name,team_id,position,jersey_number").in("team_id",[m.data.home_team_id,m.data.away_team_id]).order("name")).data||[];
+ shell("Live Match",'<div class="detail"><section class="card"><h2>'+esc(m.data.home_team?.name)+' '+(m.data.home_score??0)+' — '+(m.data.away_score??0)+' '+esc(m.data.away_team?.name)+'</h2><p>Status: <b>'+esc(m.data.status)+'</b></p><div class="cards"><button class="btn" id="goLive">Anza Live</button><button class="btn" id="half">Halftime</button><button class="btn" id="finish">Maliza</button></div></section><section class="card"><h2>Match Event</h2><form id="eventForm" class="form"><select id="eTeam" required><option value="">Timu</option><option value="'+m.data.home_team_id+'">'+esc(m.data.home_team?.name)+'</option><option value="'+m.data.away_team_id+'">'+esc(m.data.away_team?.name)+'</option></select><select id="ePlayer" required><option value="">Mchezaji</option>'+players.map(p=>'<option value="'+p.id+'" data-team="'+p.team_id+'">'+esc(p.name)+' · '+esc(p.position||"")+'</option>').join("")+'</select><select id="eType"><option value="goal">Goal</option><option value="yellow_card">Yellow Card</option><option value="red_card">Red Card</option><option value="penalty_scored">Penalty Scored</option><option value="penalty_missed">Penalty Missed</option><option value="own_goal">Own Goal</option><option value="assist">Assist</option></select><input id="eMinute" type="number" min="0" value="1"><input id="eAdded" type="number" min="0" value="0"><input id="eDetails" placeholder="Details"><button class="btn">Ongeza Event</button><div id="eventMsg"></div></form></section><section class="card"><h2>Substitution</h2><form id="subForm" class="form"><select id="sTeam" required><option value="">Timu</option><option value="'+m.data.home_team_id+'">'+esc(m.data.home_team?.name)+'</option><option value="'+m.data.away_team_id+'">'+esc(m.data.away_team?.name)+'</option></select><select id="sOn" required><option value="">Player in</option>'+players.map(p=>'<option value="'+p.id+'">'+esc(p.name)+'</option>').join("")+'</select><select id="sOff" required><option value="">Player out</option>'+players.map(p=>'<option value="'+p.id+'">'+esc(p.name)+'</option>').join("")+'</select><input id="sMinute" type="number" min="0" value="60"><button class="btn">Substitution</button><div id="subMsg"></div></form></section></div>');
+ const status=async s=>{const x=await db.rpc("set_match_status",{p_match_id:id,p_status:s}); if(x.error)alert(x.error.message); else adminLive(id)};
+ goLive.onclick=()=>status("live"); half.onclick=()=>status("halftime"); finish.onclick=()=>status("finished");
+ eventForm.onsubmit=async e=>{e.preventDefault();const x=await db.rpc("add_match_event",{p_match_id:id,p_team_id:eTeam.value,p_player_id:ePlayer.value,p_event_type:eType.value,p_minute:Number(eMinute.value),p_added_time:Number(eAdded.value),p_details:eDetails.value.trim()});eventMsg.textContent=x.error?x.error.message:"Event imehifadhiwa.";if(!x.error)adminLive(id)};
+ subForm.onsubmit=async e=>{e.preventDefault();const x=await db.rpc("record_substitution",{p_match_id:id,p_team_id:sTeam.value,p_player_on_id:sOn.value,p_player_off_id:sOff.value,p_minute:Number(sMinute.value),p_added_time:0});subMsg.textContent=x.error?x.error.message:"Substitution imehifadhiwa.";if(!x.error)adminLive(id)};
+}
+async function adminLineup(id){
+ const {data:{session}}=await db.auth.getSession(); if(!session)return admin();
+ const m=await db.from("matches").select("id,home_team_id,away_team_id,home_team:teams!matches_home_team_id_fkey(name),away_team:teams!matches_away_team_id_fkey(name)").eq("id",id).single();
+ if(m.error)return shell("Lineup",errBox(m.error));
+ const ps=(await db.from("players").select("id,name,team_id,position,jersey_number").in("team_id",[m.data.home_team_id,m.data.away_team_id]).order("jersey_number")).data||[];
+ const options=ps.map(p=>'<option value="'+p.id+'">'+esc(p.name)+' #'+esc(p.jersey_number||"")+'</option>').join("");
+ shell("Lineups",'<div class="cards"><div class="card"><h2>'+esc(m.data.home_team?.name)+'</h2><form id="lh" class="form"><select id="hCaptain"><option value="">Captain</option>'+ps.filter(p=>p.team_id===m.data.home_team_id).map(p=>'<option value="'+p.id+'">'+esc(p.name)+'</option>').join("")+'</select><select id="hPlayers" multiple size="12">'+ps.filter(p=>p.team_id===m.data.home_team_id).map(p=>'<option value="'+p.id+'">'+esc(p.name)+' · '+esc(p.position||"")+'</option>').join("")+'</select><input id="hFormation" value="4-3-3"><button class="btn">Save Home Lineup</button><div id="hm"></div></form></div><div class="card"><h2>'+esc(m.data.away_team?.name)+'</h2><form id="la" class="form"><select id="aCaptain"><option value="">Captain</option>'+ps.filter(p=>p.team_id===m.data.away_team_id).map(p=>'<option value="'+p.id+'">'+esc(p.name)+'</option>').join("")+'</select><select id="aPlayers" multiple size="12">'+ps.filter(p=>p.team_id===m.data.away_team_id).map(p=>'<option value="'+p.id+'">'+esc(p.name)+' · '+esc(p.position||"")+'</option>').join("")+'</select><input id="aFormation" value="4-3-3"><button class="btn">Save Away Lineup</button><div id="am"></div></form></div></div>');
+ const save=(form,team,playersSel,cap,formation,msg)=>form.onsubmit=async e=>{e.preventDefault();const arr=[...playersSel.selectedOptions].map((o,i)=>({player_id:o.value,starter:i<11,sort_order:i,position:null,position_x:null,position_y:null}));const x=await db.rpc("save_match_lineup",{p_match_id:id,p_team_id:team,p_formation:formation.value,p_captain_player_id:cap.value||null,p_players:arr});msg.textContent=x.error?x.error.message:"Lineup imehifadhiwa."};
+ save(lh,m.data.home_team_id,hPlayers,hCaptain,hFormation,hm); save(la,m.data.away_team_id,aPlayers,aCaptain,aFormation,am);
+}
 async function adminMatches(){
  const {data:{session}}=await db.auth.getSession(); if(!session)return admin();
  const leagues=(await db.from("leagues").select("id,name").order("name")).data||[], teams=(await db.from("teams").select("id,name,league_id").order("name")).data||[];
@@ -156,7 +177,9 @@ async function route(){
   if(p[0]==="statistics")return statistics();
   if(p[0]==="news"&&!p[1])return news();
   if(p[0]==="news")return newsDetail(p[1]);
-  if(p[0]==="admin"&&p[1]==="matches")return adminMatches();
+  if(p[0]==="admin"&&p[1]==="matches"&&!p[2])return adminMatches();
+  if(p[0]==="admin"&&p[1]==="matches"&&p[2]==="live")return adminLive(p[3]);
+  if(p[0]==="admin"&&p[1]==="matches"&&p[2]==="lineup")return adminLineup(p[3]);
   if(p[0]==="admin")return admin();
   return dashboard();
  }catch(e){shell("AFRO SPORT",errBox(e))}
