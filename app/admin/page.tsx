@@ -7,7 +7,7 @@ type Row=any;
 
 export default function Admin(){
  const db=supabase(),[tab,setTab]=useState("Mashindano"),[user,setUser]=useState<any>(null),[msg,setMsg]=useState(""),[err,setErr]=useState("");
- const [mode,setMode]=useState("Automatic"),[leagues,setLeagues]=useState<Row[]>([]),[stages,setStages]=useState<Row[]>([]),[groups,setGroups]=useState<Row[]>([]),[teams,setTeams]=useState<Row[]>([]),[players,setPlayers]=useState<Row[]>([]),[matches,setMatches]=useState<Row[]>([]),[stageTeams,setStageTeams]=useState<Row[]>([]);
+ const [leagues,setLeagues]=useState<Row[]>([]),[stages,setStages]=useState<Row[]>([]),[groups,setGroups]=useState<Row[]>([]),[teams,setTeams]=useState<Row[]>([]),[players,setPlayers]=useState<Row[]>([]),[matches,setMatches]=useState<Row[]>([]),[stageTeams,setStageTeams]=useState<Row[]>([]);
  async function load(){if(!db)return;const {data}=await db.auth.getUser();setUser(data.user);const [l,s,g,t,p,m,st]=await Promise.all([
   db.from("leagues").select("*").order("name"),db.from("competition_stages").select("*,leagues(name)").order("stage_order"),
   db.from("stage_groups").select("*,competition_stages(name)").order("group_order"),db.from("teams").select("*,leagues(name)").order("name"),
