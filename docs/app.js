@@ -37,18 +37,30 @@ async function competitions(){
 }
 
 async function competition(id){
- const [c,s,st,m,sc]=await Promise.all([
+ const [c,s,g,st,m,sc]=await Promise.all([
   db.from("leagues").select("*").eq("id",id).single(),
   db.from("competition_stages").select("id,name,stage_type,stage_order,leg_count").eq("league_id",id).order("stage_order"),
-  db.from("stage_teams").select("stage_id,team_id,group_id,teams(name,short_name)").eq("stage_id",(await db.from("competition_stages").select("id").eq("league_id",id).order("stage_order").limit(1)).data?.[0]?.id||"00000000-0000-0000-0000-000000000000"),
+  db.from("stage_groups").select("id,stage_id,name,group_order,competition_stages!stage_groups_stage_id_fkey(league_id,name)").eq("competition_stages.league_id",id).order("group_order"),
+  db.from("stage_teams").select("stage_id,team_id,group_id,seed,teams(name,short_name),competition_stages!stage_teams_stage_id_fkey(league_id)").eq("competition_stages.league_id",id),
   db.from("matches").select("id,scheduled_at,status,home_score,away_score,round_name,home_team:teams!matches_home_team_id_fkey(name),away_team:teams!matches_away_team_id_fkey(name)").eq("league_id",id).order("scheduled_at",{ascending:false}).limit(12),
   db.from("competition_top_scorers").select("player_id,player_name,team_name,goals").eq("competition_id",id).order("goals",{ascending:false}).limit(10)
  ]);
  if(c.error)return shell("Mashindano",errBox(c.error));
- const stages=(s.data||[]).map(x=>'<div class="row"><span><b>'+esc(x.name)+'</b><small>'+esc(x.stage_type)+' · '+(x.leg_count||1)+' leg(s)</small></span><span class="accent">Stage '+x.stage_order+'</span></div>').join("")||'<div class="empty">Hakuna stages.</div>';
+ const stages=(s.data||[]).map(x=>'<div class="row"><span><b>'+esc(x.name)+'</b><small>'+esc(x.stage_type)+' · '+(x.leg_count||1)+' leg(s)</small></span><a class="accent" href="#/competitions/'+id+'/stage/'+x.id+'">Fungua →</a></div>').join("")||'<div class="empty">Hakuna stages.</div>';
+ const groups=(g.data||[]).filter(x=>x.stage_id).map(x=>{const ts=(st.data||[]).filter(t=>t.group_id===x.id);return '<div class="card"><h3>'+esc(x.name)+'</h3><div class="list">'+(ts.map(t=>'<a class="row" href="#/teams/'+t.team_id+'"><span><b>'+esc(t.teams?.name)+'</b><small>Seed '+esc(t.seed||"—")+'</small></span><span>→</span></a>').join("")||'<div class="empty">Hakuna timu.</div>')+'</div></div>'}).join("");
  const matches=(m.data||[]).map(x=>'<a class="row" href="#/matches/'+x.id+'"><span><b>'+esc(x.home_team?.name)+' — '+esc(x.away_team?.name)+'</b><small>'+fmt(x.scheduled_at)+' · '+esc(x.status)+'</small></span><strong>'+((x.status==="scheduled")?"VS":(x.home_score??0)+" - "+(x.away_score??0))+'</strong></a>').join("")||'<div class="empty">Hakuna mechi.</div>';
  const scorers=(sc.data||[]).map(x=>'<a class="row" href="#/players/'+x.player_id+'"><span><b>'+esc(x.player_name)+'</b><small>'+esc(x.team_name)+'</small></span><strong>'+x.goals+' ⚽</strong></a>').join("")||'<div class="empty">Hakuna wafungaji.</div>';
- shell(esc(c.data.name),'<div class="detail"><section class="card"><div class="tag">'+esc(c.data.competition_type||"competition")+'</div><h2>'+esc(c.data.country||"Africa")+' · '+esc(c.data.season||"")+'</h2><p>'+esc(c.data.description||"")+'</p><h2>Stages</h2><div class="list">'+stages+'</div><p><a class="btn" href="#/competitions/'+id+'/standings">Angalia standings →</a></p></section><section class="card"><h2>Wafungaji</h2><div class="list">'+scorers+'</div></section></div><section class="card section"><h2>Mechi za mwisho</h2><div class="list">'+matches+'</div></section>');
+ shell(esc(c.data.name),'<div class="detail"><section class="card"><div class="tag">'+esc(c.data.competition_type||"competition")+'</div><h2>'+esc(c.data.country||"Africa")+' · '+esc(c.data.season||"")+'</h2><p>'+esc(c.data.description||"")+'</p><h2>Stages</h2><div class="list">'+stages+'</div></section><section class="card"><h2>Groups & Teams</h2><div class="cards">'+(groups||'<div class="empty">Hakuna groups.</div>')+'</div><p><a class="btn" href="#/competitions/'+id+'/standings">Standings</a></p></section></div><section class="card section"><h2>Mechi</h2><div class="list">'+matches+'</div></section><section class="card section"><h2>Top Scorers</h2><div class="list">'+scorers+'</div></section>');
+}
+async function stageDetail(compId,stageId){
+ const [s,g,st]=await Promise.all([
+  db.from("competition_stages").select("id,name,stage_type,stage_order,leg_count,league_id").eq("id",stageId).single(),
+  db.from("stage_groups").select("id,name,group_order").eq("stage_id",stageId).order("group_order"),
+  db.from("stage_standings").select("*").eq("stage_id",stageId).order("group_id").order("position")
+ ]);
+ if(s.error)return shell("Stage",errBox(s.error));
+ const blocks=(g.data||[]).map(gr=>{const rows=(st.data||[]).filter(x=>x.group_id===gr.id);return '<section class="card"><h2>'+esc(gr.name)+'</h2><div class="list">'+(rows.map(x=>'<a class="row" href="#/teams/'+x.team_id+'"><span><b>'+x.position+'. '+esc(x.team_name)+'</b><small>'+x.played+'P · '+x.wins+'W '+x.draws+'D '+x.losses+'L · GD '+x.goal_difference+'</small></span><strong>'+x.points+' pts</strong></a>').join("")||'<div class="empty">Hakuna results bado.</div>')+'</div></section>'}).join("");
+ shell(esc(s.data.name),'<div class="detail"><section class="card"><div class="tag">'+esc(s.data.stage_type)+'</div><h2>Stage '+s.data.stage_order+'</h2><p>Legs: '+(s.data.leg_count||1)+'</p></section><div class="cards">'+(blocks||'<div class="empty">Hakuna groups katika stage hii.</div>')+'</div></div>');
 }
 
 async function standings(id){
@@ -178,6 +190,7 @@ async function route(){
   if(!db)return shell("AFRO SPORT",'<div class="empty">Supabase haijaunganishwa.</div>');
   if(p[0]==="competitions"&&!p[1])return competitions();
   if(p[0]==="competitions"&&p[2]==="standings")return standings(p[1]);
+  if(p[0]==="competitions"&&p[2]==="stage")return stageDetail(p[1],p[3]);
   if(p[0]==="competitions")return competition(p[1]);
   if(p[0]==="teams"&&!p[1])return teams();
   if(p[0]==="teams")return team(p[1]);
