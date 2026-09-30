@@ -7,26 +7,32 @@ export default function CompetitionDetail({params}:{params:Promise<{id:string}>}
   const [id,setId]=useState(""); const [competition,setCompetition]=useState<Row>(null);
   const [stages,setStages]=useState<Row[]>([]); const [groups,setGroups]=useState<Row[]>([]);
   const [stageTeams,setStageTeams]=useState<Row[]>([]); const [matches,setMatches]=useState<Row[]>([]);
-  const [standings,setStandings]=useState<Row[]>([]); const [stageStandings,setStageStandings]=useState<Row[]>([]); const [scorers,setScorers]=useState<Row[]>([]);
+  const [standings,setStandings]=useState<Row[]>([]); const [stageStandings,setStageStandings]=useState<Row[]>([]); const [scorers,setScorers]=useState<Row[]>([]); const [playerStats,setPlayerStats]=useState<Row[]>([]);
   const [ties,setTies]=useState<Row[]>([]); const [loading,setLoading]=useState(true);
 
   useEffect(()=>{params.then(p=>setId(p.id))},[params]);
   useEffect(()=>{
     if(!id)return; const db=supabase(); if(!db){setLoading(false);return;}
-    Promise.all([
-      db.from("leagues").select("*").eq("id",id).single(),
-      db.from("competition_stages").select("*").eq("league_id",id).order("stage_order"),
-      db.from("stage_groups").select("id,stage_id,name,group_order").order("group_order"),
-      db.from("matches").select("id,scheduled_at,status,home_score,away_score,venue,round_name,stage_id,group_id,home_team:teams!matches_home_team_id_fkey(name),away_team:teams!matches_away_team_id_fkey(name)").eq("league_id",id).order("scheduled_at",{ascending:true}).limit(100),
-      db.from("league_standings").select("*").eq("league_id",id).order("points",{ascending:false}).order("goal_difference",{ascending:false}),
-      db.from("stage_standings").select("*").in("stage_id",(s.data||[]).map((x:Row)=>x.id)),
-      db.from("competition_top_scorers").select("*").eq("competition_id",id).order("goals",{ascending:false}).limit(20),
-      db.from("knockout_ties").select("id,stage_id,tie_number,home_seed,away_seed,home_team_id,away_team_id,winner_team_id,status,next_slot,home_team:teams!knockout_ties_home_team_id_fkey(name),away_team:teams!knockout_ties_away_team_id_fkey(name),winner_team:teams!knockout_ties_winner_team_id_fkey(name)").order("tie_number")
-    ]).then(async ([c,s,g,m,st,ss,sc,k])=>{
-      const stageRows=s.data||[]; let teamRows:Row[]=[];
-      if(stageRows.length){const r=await db.from("stage_teams").select("stage_id,team_id,group_id,seed,teams(id,name,short_name,logo_url)").in("stage_id",stageRows.map((x:Row)=>x.id));teamRows=r.data||[];}
-      setCompetition(c.data);setStages(stageRows);setGroups(g.data||[]);setStageTeams(teamRows);setMatches(m.data||[]);setStandings(st.data||[]);setStageStandings(ss.data||[]);setScorers(sc.data||[]);setTies(k.data||[]);setLoading(false);
-    })
+    const load=async()=>{
+      const [c,s,g,m,st,sc,k,ps]=await Promise.all([
+        db.from("leagues").select("*").eq("id",id).single(),
+        db.from("competition_stages").select("*").eq("league_id",id).order("stage_order"),
+        db.from("stage_groups").select("id,stage_id,name,group_order").order("group_order"),
+        db.from("matches").select("id,scheduled_at,status,home_score,away_score,venue,round_name,stage_id,group_id,home_team:teams!matches_home_team_id_fkey(name),away_team:teams!matches_away_team_id_fkey(name)").eq("league_id",id).order("scheduled_at",{ascending:true}).limit(100),
+        db.from("league_standings").select("*").eq("league_id",id).order("points",{ascending:false}).order("goal_difference",{ascending:false}),
+        db.from("competition_top_scorers").select("*").eq("competition_id",id).order("goals",{ascending:false}).limit(50),
+        db.from("knockout_ties").select("id,stage_id,tie_number,home_seed,away_seed,home_team_id,away_team_id,winner_team_id,status,next_slot,home_team:teams!knockout_ties_home_team_id_fkey(name),away_team:teams!knockout_ties_away_team_id_fkey(name),winner_team:teams!knockout_ties_winner_team_id_fkey(name)").order("tie_number"),
+        db.from("player_competition_stats").select("*").eq("competition_id",id).order("goals",{ascending:false}).order("assists",{ascending:false}).limit(100)
+      ]);
+      const stageRows=s.data||[];
+      const stageIds=stageRows.map((x:Row)=>x.id);
+      const [tr,ss]=await Promise.all([
+        stageIds.length?db.from("stage_teams").select("stage_id,team_id,group_id,seed,teams(id,name,short_name,logo_url)").in("stage_id",stageIds):Promise.resolve({data:[],error:null}),
+        stageIds.length?db.from("stage_standings").select("*").in("stage_id",stageIds):Promise.resolve({data:[],error:null})
+      ]);
+      setCompetition(c.data);setStages(stageRows);setGroups(g.data||[]);setStageTeams(tr.data||[]);setMatches(m.data||[]);setStandings(st.data||[]);setStageStandings(ss.data||[]);setScorers(sc.data||[]);setPlayerStats(ps.data||[]);setTies(k.data||[]);setLoading(false);
+    };
+    load();
   },[id]);
 
   if(loading)return <main className="page"><div className="empty">Inapakia mashindano...</div></main>;
