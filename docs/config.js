@@ -1,0 +1,1 @@
+window.AFRO_CONFIG={supabaseUrl:"https://kbgvkhayyrsqvcmdzjcf.supabase.co",supabaseKey:"sb_publishable_IwmplwjnFDM1i-yHN3WMRQ_gmHSgaj9"};
