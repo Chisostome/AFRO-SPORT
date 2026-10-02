@@ -6,36 +6,124 @@
   <title>AFRO SPORT — Dashibodi</title>
   <link rel="stylesheet" href="./styles.css">
 </head>
-<body>
-  <main class="login-card" style="margin:8vh auto">
-    <p class="eyebrow">AFRO SPORT</p>
-    <h2>Dashibodi ya Admin</h2>
-    <p id="welcome" class="muted">Inapakia...</p>
-    <button id="logout">Toka</button>
+<body class="admin-body">
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-mark">AS</div>
+      <div><strong>AFRO SPORT</strong><span>MICHEZO YA AFRO</span></div>
+    </div>
+    <nav class="admin-nav" aria-label="Menyu ya Admin">
+      <a class="active" href="./dashboard.html">⌂ <span>Dashibodi</span></a>
+      <a href="#" data-coming="Ligi">🏆 <span>Ligi</span></a>
+      <a href="#" data-coming="Timu">⚽ <span>Timu</span></a>
+      <a href="#" data-coming="Wachezaji">👤 <span>Wachezaji</span></a>
+      <a href="#" data-coming="Mechi">📅 <span>Mechi</span></a>
+      <a href="#" data-coming="Msimamo">📊 <span>Msimamo</span></a>
+      <a href="#" data-coming="Wafungaji Bora">🥇 <span>Wafungaji Bora</span></a>
+      <a href="#" data-coming="Takwimu">📈 <span>Takwimu</span></a>
+    </nav>
+    <button class="logout-button" id="logout">Toka</button>
+  </aside>
+
+  <main class="admin-main">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">AFRO SPORT</p>
+        <h1>Dashibodi</h1>
+      </div>
+      <div class="admin-user">
+        <strong id="role-label">Inapakia...</strong>
+        <span id="user-email"></span>
+      </div>
+    </header>
+
+    <section class="welcome-card">
+      <div>
+        <p class="eyebrow">MICHEZO YA AFRO</p>
+        <h2>Karibu kwenye Dashibodi ya AFRO SPORT</h2>
+        <p>Simamia ligi, timu, wachezaji, mechi na takwimu za mashindano yako.</p>
+      </div>
+    </section>
+
+    <section class="stats-grid" aria-label="Muhtasari wa mfumo">
+      <article class="stat-card"><span>Ligi</span><strong id="league-count">—</strong></article>
+      <article class="stat-card"><span>Timu</span><strong id="team-count">—</strong></article>
+      <article class="stat-card"><span>Wachezaji</span><strong id="player-count">—</strong></article>
+      <article class="stat-card"><span>Mechi</span><strong id="match-count">—</strong></article>
+    </section>
+
+    <section class="dashboard-grid">
+      <article class="panel">
+        <div class="panel-head"><div><p class="eyebrow">MFUMO</p><h3>Usimamizi</h3></div></div>
+        <div class="quick-links">
+          <a href="#" data-coming="Ligi"><strong>🏆 Ligi</strong><span>Unda na simamia mashindano</span></a>
+          <a href="#" data-coming="Timu"><strong>⚽ Timu</strong><span>Ongeza na hariri timu</span></a>
+          <a href="#" data-coming="Wachezaji"><strong>👤 Wachezaji</strong><span>Simamia vikosi na wachezaji</span></a>
+          <a href="#" data-coming="Mechi"><strong>📅 Mechi</strong><span>Ratiba na matokeo</span></a>
+        </div>
+      </article>
+
+      <article class="panel">
+        <div class="panel-head"><div><p class="eyebrow">MUHTASARI</p><h3>Hatua zinazofuata</h3></div></div>
+        <ul class="next-steps">
+          <li><span>01</span><div><strong>Unda Ligi</strong><p>Ongeza mashindano na misimu yake.</p></div></li>
+          <li><span>02</span><div><strong>Ongeza Timu</strong><p>Jenga orodha ya timu zinazoshiriki.</p></div></li>
+          <li><span>03</span><div><strong>Ongeza Wachezaji</strong><p>Unganisha wachezaji na timu kwa msimu.</p></div></li>
+        </ul>
+      </article>
+    </section>
+
+    <p id="dashboard-message" class="message dashboard-message"></p>
   </main>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./config.js"></script>
   <script>
     const { createClient } = window.supabase;
     const sb = createClient(window.AFRO_SUPABASE_URL, window.AFRO_SUPABASE_PUBLISHABLE_KEY);
-    const welcome = document.getElementById("welcome");
-    const logout = document.getElementById("logout");
+
+    const countRows = async (table) => {
+      const { count, error } = await sb.from(table).select("*", { count: "exact", head: true });
+      return error ? null : count;
+    };
 
     (async () => {
       const { data: { user } } = await sb.auth.getUser();
       if (!user) { window.location.href = "./index.html"; return; }
 
       const { data: role } = await sb.from("user_roles").select("role").eq("user_id", user.id).maybeSingle();
-      if (!role || !["super_admin","admin"].includes(role.role)) {
+      if (!role || !["super_admin", "admin"].includes(role.role)) {
         await sb.auth.signOut();
         window.location.href = "./index.html";
         return;
       }
 
-      welcome.textContent = `Umeingia kama ${role.role === "super_admin" ? "Super Admin" : "Admin"} — ${user.email}`;
+      document.getElementById("role-label").textContent =
+        role.role === "super_admin" ? "Super Admin" : "Admin";
+      document.getElementById("user-email").textContent = user.email || "";
+
+      const [leagues, teams, players, matches] = await Promise.all([
+        countRows("leagues"),
+        countRows("teams"),
+        countRows("players"),
+        countRows("matches")
+      ]);
+
+      document.getElementById("league-count").textContent = leagues ?? "—";
+      document.getElementById("team-count").textContent = teams ?? "—";
+      document.getElementById("player-count").textContent = players ?? "—";
+      document.getElementById("match-count").textContent = matches ?? "—";
     })();
 
-    logout.addEventListener("click", async () => {
+    document.querySelectorAll("[data-coming]").forEach((link) => {
+      link.addEventListener("click", (event) => {
+        event.preventDefault();
+        document.getElementById("dashboard-message").textContent =
+          link.dataset.coming + " tutaj tutaj itajengwa katika hatua inayofuata.";
+      });
+    });
+
+    document.getElementById("logout").addEventListener("click", async () => {
       await sb.auth.signOut();
       window.location.href = "./index.html";
     });
