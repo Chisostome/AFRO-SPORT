@@ -110,8 +110,13 @@ function renderPlayers(rows){
 }
 
 async function loadPlayers(){
-  const {data,error}=await sb.from("players").select("id,first_name,last_name,slug,photo_url,nationality,date_of_birth,position,player_seasons(id,team_id,season_id,squad_number)").order("first_name").order("last_name");
+  const {data,error}=await sb.from("players").select("id,first_name,last_name,slug,photo_url,nationality,date_of_birth,position").order("first_name").order("last_name");
   if(error){document.getElementById("player-list").innerHTML='<p class="empty-state error-state">Imeshindikana kupakia wachezaji.</p>';return;}
+  const ids=(data||[]).map(p=>p.id);
+  if(!ids.length){renderPlayers([]);return;}
+  const {data:assignments}=await sb.from("player_seasons").select("id,player_id,team_id,season_id,squad_number").in("player_id",ids);
+  const byPlayer={};(assignments||[]).forEach(a=>{(byPlayer[a.player_id]??=[]).push(a);});
+  (data||[]).forEach(p=>p.player_seasons=byPlayer[p.id]||[]);
   renderPlayers(data||[]);
 }
 
