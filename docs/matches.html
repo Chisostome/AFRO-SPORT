@@ -72,7 +72,17 @@
   </div>
   <div id="match-list" class="player-list"><p class="empty-state">Inapakia mechi...</p></div>
 </section>
-<p id="page-message" class="message page-message"></p>
+<section class="panel" id="result-panel" hidden>
+  <div class="panel-head"><div><p class="eyebrow">MATOKEO</p><h3 id="result-title">Ingiza Matokeo</h3></div></div>
+  <form id="result-form" class="admin-form">
+    <label for="home-score">Magoli ya nyumbani</label>
+    <input id="home-score" type="number" min="0" required>
+    <label for="away-score">Magoli ya ugenini</label>
+    <input id="away-score" type="number" min="0" required>
+    <div class="form-actions"><button type="button" class="secondary-button" id="cancel-result">Ghairi</button><button class="primary-button" id="save-result">Hifadhi Matokeo</button></div>
+    <p id="result-message" class="message"></p>
+  </form>
+</section><p id="page-message" class="message page-message"></p>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -81,7 +91,7 @@
 const {createClient}=window.supabase;
 const sb=createClient(window.AFRO_SUPABASE_URL,window.AFRO_SUPABASE_PUBLISHABLE_KEY);
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
-let stages=[];
+let stages=[]; let selectedMatchId=null;
 
 async function requireAdmin(){
   const {data:{user}}=await sb.auth.getUser();
@@ -131,7 +141,7 @@ function renderMatches(rows){
   list.innerHTML=rows.map(m=>{
     const when=m.kickoff_at?new Date(m.kickoff_at).toLocaleString("sw-TZ",{dateStyle:"medium",timeStyle:"short"}):"Muda haujawekwa";
     const score=m.status==="completed"&&m.home_score!==null&&m.away_score!==null?m.home_score+" - "+m.away_score:"vs";
-    return '<div class="stage-team-row"><div><strong>'+esc(m.home_team?.name||"Timu")+" "+score+" "+esc(m.away_team?.name||"Timu")+'</strong><small>'+esc(m.competition_stages?.seasons?.leagues?.name||"Ligi")+" · "+esc(m.competition_stages?.name||"Hatua")+" · "+esc(when)+(m.round_name?" · "+esc(m.round_name):"")+" · Leg "+esc(m.leg)+'</small></div><span class="count-badge">'+esc(m.status)+'</span></div>';
+    return '<div class="stage-team-row"><div><strong>'+esc(m.home_team?.name||"Timu")+" "+score+" "+esc(m.away_team?.name||"Timu")+'</strong><small>'+esc(m.competition_stages?.seasons?.leagues?.name||"Ligi")+" · "+esc(m.competition_stages?.name||"Hatua")+" · "+esc(when)+(m.round_name?" · "+esc(m.round_name):"")+" · Leg "+esc(m.leg)+'</small></div><div class="match-row-actions"><span class="count-badge">'+esc(m.status)+'</span>'+(m.status!=="completed"&&m.status!=="cancelled"?'<button class="secondary-button result-button" data-id="'+m.id+'">Ingiza Matokeo</button>':"")+'</div></div>';
   }).join("");
 }
 
@@ -140,8 +150,25 @@ async function loadMatches(){
     .select("id,kickoff_at,venue,round_name,leg,status,home_score,away_score,home_team:teams!matches_home_team_id_fkey(name),away_team:teams!matches_away_team_id_fkey(name),competition_stages!inner(name,seasons!inner(name,leagues!inner(name)))")
     .order("kickoff_at",{ascending:true,nullsFirst:false});
   if(error){document.getElementById("match-list").innerHTML='<p class="empty-state error-state">Imeshindikana kupakia mechi.</p>';return;}
-  renderMatches(data||[]);
+  window.__matches=data||[]; renderMatches(data||[]);
 }
+
+
+
+document.getElementById("cancel-result").onclick=()=>{selectedMatchId=null;document.getElementById("result-panel").hidden=true;document.getElementById("result-form").reset();};
+document.getElementById("save-result").onclick=async e=>{
+  e.preventDefault(); if(!selectedMatchId)return;
+  const button=document.getElementById("save-result"),message=document.getElementById("result-message");
+  button.disabled=true;button.textContent="Inahifadhi...";message.textContent="";
+  const home=Number(document.getElementById("home-score").value),away=Number(document.getElementById("away-score").value);
+  const {error}=await sb.from("matches").update({home_score:home,away_score:away,status:"completed",result_entered_at:new Date().toISOString(),updated_at:new Date().toISOString()}).eq("id",selectedMatchId);
+  button.disabled=false;button.textContent="Hifadhi Matokeo";
+  if(error){message.textContent="Imeshindikana kuhifadhi matokeo.";return;}
+  document.getElementById("result-panel").hidden=true;document.getElementById("result-form").reset();selectedMatchId=null;
+  document.getElementById("page-message").textContent="Matokeo yamehifadhiwa. Mechi imekamilika.";
+  await loadMatches();
+};
+document.addEventListener("click",e=>{const b=e.target.closest(".result-button");if(!b)return;selectedMatchId=b.dataset.id;const m=window.__matches?.find(x=>x.id===selectedMatchId);if(m){document.getElementById("result-title").textContent="Matokeo: "+(m.home_team?.name||"Timu")+" dhidi ya "+(m.away_team?.name||"Timu");}document.getElementById("result-panel").hidden=false;document.getElementById("home-score").focus();});
 
 document.getElementById("match-stage").addEventListener("change",e=>loadStageTeams(e.target.value));
 
