@@ -234,7 +234,10 @@
       list.innerHTML = data.map((season) => `
         <div class="season-row">
           <div><strong>${escapeHtml(season.name)}</strong><small>${season.start_date || "—"} → ${season.end_date || "—"}</small></div>
-          <span class="season-badge ${season.is_current ? "current" : ""}">${season.is_current ? "Sasa" : "Historia"}</span>
+          <div class="season-actions">
+            <span class="season-badge ${season.is_current ? "current" : ""}">${season.is_current ? "Sasa" : "Historia"}</span>
+            <a class="secondary-button season-open" href="./stages.html?season=${season.id}">Hatua</a>
+          </div>
         </div>
       `).join("");
     }
