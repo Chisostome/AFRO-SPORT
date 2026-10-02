@@ -47,7 +47,10 @@ export default function AdminLoginPage() {
       .eq("user_id", userData.user.id)
       .maybeSingle();
 
-    if (roleError || role?.role !== "admin") {
+    if (
+      roleError ||
+      (role?.role !== "admin" && role?.role !== "super_admin")
+    ) {
       await supabase.auth.signOut();
       setError("Akaunti hii haina ruhusa ya Admin.");
       setLoading(false);
@@ -69,7 +72,9 @@ export default function AdminLoginPage() {
         <div className="login-card">
           <div className="eyebrow">AFRO SPORT</div>
           <h1>Ingia kwenye Admin</h1>
-          <p className="lead">Simamia ligi, timu, wachezaji, mechi, matokeo na habari.</p>
+          <p className="lead">
+            Simamia ligi, timu, wachezaji, mechi, matokeo na habari.
+          </p>
 
           {notAdmin && (
             <div className="notice error">
@@ -100,7 +105,14 @@ export default function AdminLoginPage() {
               required
             />
 
-            <label style={{ display: "flex", alignItems: "center", gap: 8, color: "#a8bbb0" }}>
+            <label
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                color: "#a8bbb0",
+              }}
+            >
               <input
                 type="checkbox"
                 checked={remember}
