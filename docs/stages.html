@@ -231,15 +231,15 @@
     }
     async function loadStageTeamList(){
       const list=document.getElementById("stage-team-list");
-      const {data,error}=await sb.from("team_stage_entries").select("id,team_id,group_id,seed,teams(name,short_name),stage_groups(name)").eq("stage_id",selectedStageId).order("created_at");
+      const {data,error}=await sb.from("stage_teams").select("id,team_id,group_id,seed,teams(name,short_name),stage_groups(name)").eq("stage_id",selectedStageId).order("created_at");
       if(error){list.innerHTML='<p class="empty-state error-state">Imeshindikana kupakia timu za hatua.</p>';return;}
       if(!data?.length){list.innerHTML='<p class="empty-state">Hakuna timu iliyowekwa kwenye hatua hii.</p>';return;}
       list.innerHTML=data.map(e=>'<div class="stage-team-row"><div><strong>'+escapeHtml(e.teams?.name||"Timu")+'</strong><small>'+(e.stage_groups?.name?escapeHtml(e.stage_groups.name)+" · ":"")+(e.seed?"Seed "+escapeHtml(e.seed):"Seed —")+'</small></div><button type="button" class="secondary-button danger-button stage-team-remove" data-entry="'+e.id+'">Ondoa</button></div>').join("");
-      list.querySelectorAll("[data-entry]").forEach(btn=>btn.addEventListener("click",async()=>{if(!confirm("Ondoa timu hii kwenye hatua?"))return;const {error}=await sb.from("team_stage_entries").delete().eq("id",btn.dataset.entry);if(error){document.getElementById("stage-team-message").textContent="Imeshindikana kuondoa timu.";return;}await loadStageTeamList();document.getElementById("stage-team-message").textContent="Timu imeondolewa."; }));
+      list.querySelectorAll("[data-entry]").forEach(btn=>btn.addEventListener("click",async()=>{if(!confirm("Ondoa timu hii kwenye hatua?"))return;const {error}=await sb.from("stage_teams").delete().eq("id",btn.dataset.entry);if(error){document.getElementById("stage-team-message").textContent="Imeshindikana kuondoa timu.";return;}await loadStageTeamList();document.getElementById("stage-team-message").textContent="Timu imeondolewa."; }));
     }
     document.getElementById("stage-team-form").addEventListener("submit",async(e)=>{
       e.preventDefault();const msg=document.getElementById("stage-team-message");const button=e.submitter;button.disabled=true;msg.textContent="";
-      const {error}=await sb.from("team_stage_entries").insert({stage_id:selectedStageId,team_id:document.getElementById("stage-team").value,group_id:document.getElementById("stage-group").value||null,seed:document.getElementById("stage-seed").value?Number(document.getElementById("stage-seed").value):null});
+      const {error}=await sb.from("stage_teams").insert({stage_id:selectedStageId,team_id:document.getElementById("stage-team").value,group_id:document.getElementById("stage-group").value||null,seed:document.getElementById("stage-seed").value?Number(document.getElementById("stage-seed").value):null});
       button.disabled=false;if(error){msg.textContent=error.code==="23505"?"Timu hii tayari ipo kwenye hatua.":"Imeshindikana kuongeza timu.";return;}
       e.target.reset();msg.textContent="Timu imeongezwa kwenye hatua.";await loadStageTeamList();
     });
