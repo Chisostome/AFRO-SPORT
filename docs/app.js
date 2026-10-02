@@ -36,7 +36,13 @@ form.addEventListener("submit", async (event) => {
     .eq("user_id", data.user.id)
     .maybeSingle();
 
-  if (roleError || !roleRow || !["super_admin", "admin"].includes(roleRow.role)) {
+  const { data: profileRow, error: profileError } = await supabaseClient
+    .from("profiles")
+    .select("is_active")
+    .eq("user_id", data.user.id)
+    .maybeSingle();
+
+  if (roleError || profileError || !roleRow || !["super_admin", "admin"].includes(roleRow.role) || profileRow?.is_active === false) {
     await supabaseClient.auth.signOut();
     message.textContent = "Akaunti hii haina ruhusa ya Admin.";
     button.disabled = false;
