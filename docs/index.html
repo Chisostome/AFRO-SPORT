@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="sw">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AFRO SPORT — Admin</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <main class="auth-shell">
+    <section class="brand-panel">
+      <div class="brand-mark">AS</div>
+      <p class="eyebrow">AFRO SPORT</p>
+      <h1>MICHEZO YA AFRO</h1>
+      <p>Jukwaa la soka la Afrika.</p>
+    </section>
+
+    <section class="login-card" aria-labelledby="login-title">
+      <p class="eyebrow">ADMIN</p>
+      <h2 id="login-title">Ingia kwenye mfumo</h2>
+      <p class="muted">Tumia barua pepe na nenosiri la akaunti yako ya Admin.</p>
+
+      <form id="login-form">
+        <label for="email">Barua pepe</label>
+        <input id="email" name="email" type="email" autocomplete="email" required>
+
+        <label for="password">Nenosiri</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" required>
+
+        <button type="submit" id="login-button">Ingia</button>
+        <p id="login-message" class="message" role="alert"></p>
+      </form>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./config.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
