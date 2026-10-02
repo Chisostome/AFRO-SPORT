@@ -5,6 +5,7 @@ on:
     branches: ["main"]
   workflow_dispatch:
 
+# AFRO SPORT Pages deployment
 permissions:
   contents: read
   pages: write
