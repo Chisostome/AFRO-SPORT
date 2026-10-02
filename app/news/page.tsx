@@ -1,1 +1,0 @@
-export default function News(){return <main className="page"><div className="page-head"><a href="/">← Dashboard</a><h1>Habari</h1><p>Habari za kila siku za mpira wa Afrika.</p></div><div className="empty">Habari zitaonekana hapa baada ya kuongezwa kupitia Admin.</div></main>
