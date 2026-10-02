@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="sw">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AFRO SPORT — Admin</title>
+  <link rel="stylesheet" href="./styles.css?v=20261002-3">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./assets/afro-sport-logo.jpg" type="image/jpeg">
+  <link rel="apple-touch-icon" href="./assets/afro-sport-logo.jpg">
+  <meta name="theme-color" content="#0b0b0b">
+  <style>
+    .admin-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+    .admin-form-grid .full{grid-column:1/-1}
+    .admin-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .role-badge{display:inline-flex;padding:5px 9px;border-radius:999px;background:#eef4ef;font-size:11px;font-weight:700}
+    .status-badge{display:inline-flex;padding:5px 9px;border-radius:999px;font-size:11px;font-weight:700}
+    .status-on{background:#e9f7ee;color:#176b3a}.status-off{background:#f5eeee;color:#8a3030}
+    @media(max-width:700px){.admin-form-grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body class="admin-body">
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <img class="brand-logo sidebar-logo" src="./assets/afro-sport-logo.jpg" alt="AFRO SPORT">
+      <div><strong>AFRO SPORT</strong><span>MICHEZO YA AFRO</span></div>
+    </div>
+    <nav class="admin-nav" aria-label="Menyu ya Admin">
+      <a href="./dashboard.html">⌂ <span>Dashibodi</span></a>
+      <a href="./leagues.html">🏆 <span>Ligi</span></a>
+      <a href="./teams.html">⚽ <span>Timu</span></a>
+      <a href="./players.html">👤 <span>Wachezaji</span></a>
+      <a href="./matches.html">📅 <span>Mechi</span></a>
+      <a href="./standings.html">📊 <span>Msimamo</span></a>
+      <a href="./scorers.html">🥇 <span>Wafungaji Bora</span></a>
+      <a href="./stats.html">📈 <span>Takwimu</span></a>
+      <a class="active" id="admins-nav" href="./admins.html">🛡 <span>Admins</span></a>
+    </nav>
+    <button class="logout-button" id="logout">Toka</button>
+  </aside>
+
+  <main class="admin-main">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">USIMAMIZI</p>
+        <h1>Admins</h1>
+      </div>
+      <div class="admin-user">
+        <strong>Super Admin</strong>
+        <span id="user-email"></span>
+      </div>
+    </header>
+
+    <section class="panel">
+      <div class="panel-head">
+        <div><p class="eyebrow">AKAUNTI MPYA</p><h3>Ongeza Admin</h3></div>
+      </div>
+      <form id="admin-form">
+        <div class="admin-form-grid">
+          <div>
+            <label for="display-name">Jina la Admin</label>
+            <input id="display-name" required>
+          </div>
+          <div>
+            <label for="admin-email">Barua pepe</label>
+            <input id="admin-email" type="email" required>
+          </div>
+          <div>
+            <label for="admin-password">Nenosiri</label>
+            <input id="admin-password" type="password" minlength="12" autocomplete="new-password" required>
+          </div>
+          <div>
+            <label for="admin-password-confirm">Rudia nenosiri</label>
+            <input id="admin-password-confirm" type="password" minlength="12" autocomplete="new-password" required>
+          </div>
+        </div>
+        <div class="admin-actions" style="margin-top:16px">
+          <button type="submit" id="create-admin-button">Ongeza Admin</button>
+          <span id="admin-message" class="message" role="alert"></span>
+        </div>
+      </form>
+    </section>
+
+    <section class="panel" style="margin-top:18px">
+      <div class="panel-head">
+        <div><p class="eyebrow">AKAUNTI</p><h3>Admins waliopo</h3></div>
+        <button type="button" id="refresh-admins">Refresh</button>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>#</th><th>Jina</th><th>Barua pepe</th><th>Role</th><th>Hali</th><th>Kitendo</th></tr></thead>
+          <tbody id="admins-body"><tr><td colspan="6">Inapakia...</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./config.js"></script>
+  <script>
+    const { createClient } = window.supabase;
+    const sb = createClient(window.AFRO_SUPABASE_URL, window.AFRO_SUPABASE_PUBLISHABLE_KEY);
+    const functionUrl = window.AFRO_SUPABASE_URL + "/functions/v1/manage-admins";
+    let currentUserId = null;
+
+    const setMessage = (text, ok = false) => {
+      const el = document.getElementById("admin-message");
+      el.textContent = text;
+      el.style.color = ok ? "#176b3a" : "";
+    };
+
+    async function callFunction(path = "", options = {}) {
+      const { data: { session } } = await sb.auth.getSession();
+      if (!session?.access_token) throw new Error("Session imekwisha. Ingia tena.");
+      const response = await fetch(functionUrl + path, {
+        ...options,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + session.access_token
+        }
+      });
+      const body = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(body.error || "Imeshindikana.");
+      return body;
+    }
+
+    function renderAdmins(admins) {
+      const body = document.getElementById("admins-body");
+      if (!admins.length) {
+        body.innerHTML = '<tr><td colspan="6">Hakuna Admin bado.</td></tr>';
+        return;
+      }
+      body.innerHTML = admins.map((admin, index) => {
+        const active = admin.is_active;
+        const role = admin.role === "super_admin" ? "Super Admin" : "Admin";
+        const action = admin.role === "admin"
+          ? '<button type="button" class="small-admin-toggle" data-id="' + admin.user_id + '" data-active="' + active + '">' + (active ? "Zima" : "Washa") + '</button>'
+          : '<span>—</span>';
+        return '<tr><td>' + (index + 1) + '</td><td>' + escapeHtml(admin.display_name || "—") +
+          '</td><td>' + escapeHtml(admin.email || "—") + '</td><td><span class="role-badge">' + role +
+          '</span></td><td><span class="status-badge ' + (active ? "status-on" : "status-off") + '">' + (active ? "Active" : "Imezimwa") +
+          '</span></td><td>' + action + '</td></tr>';
+      }).join("");
+
+      document.querySelectorAll(".small-admin-toggle").forEach((button) => {
+        button.addEventListener("click", async () => {
+          button.disabled = true;
+          try {
+            await callFunction("", {
+              method: "PATCH",
+              body: JSON.stringify({
+                user_id: button.dataset.id,
+                is_active: button.dataset.active !== "true"
+              })
+            });
+            await loadAdmins();
+          } catch (error) {
+            setMessage(error.message);
+            button.disabled = false;
+          }
+        });
+      });
+    }
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"']/g, (char) => ({
+        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+      }[char]));
+    }
+
+    async function loadAdmins() {
+      const body = document.getElementById("admins-body");
+      body.innerHTML = '<tr><td colspan="6">Inapakia...</td></tr>';
+      try {
+        const result = await callFunction();
+        renderAdmins(result.admins || []);
+      } catch (error) {
+        body.innerHTML = '<tr><td colspan="6">' + escapeHtml(error.message) + '</td></tr>';
+      }
+    }
+
+    (async () => {
+      const { data: { user } } = await sb.auth.getUser();
+      if (!user) { window.location.href = "./admin.html"; return; }
+      currentUserId = user.id;
+      document.getElementById("user-email").textContent = user.email || "";
+
+      const { data: role } = await sb.from("user_roles").select("role").eq("user_id", user.id).maybeSingle();
+      const { data: profile } = await sb.from("profiles").select("is_active").eq("user_id", user.id).maybeSingle();
+      if (role?.role !== "super_admin" || profile?.is_active === false) {
+        window.location.href = "./dashboard.html";
+        return;
+      }
+      await loadAdmins();
+    })();
+
+    document.getElementById("admin-form").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      setMessage("");
+      const password = document.getElementById("admin-password").value;
+      const confirm = document.getElementById("admin-password-confirm").value;
+      if (password !== confirm) {
+        setMessage("Nenosiri hayafanani.");
+        return;
+      }
+
+      const button = document.getElementById("create-admin-button");
+      button.disabled = true;
+      button.textContent = "Inaongeza...";
+      try {
+        await callFunction("", {
+          method: "POST",
+          body: JSON.stringify({
+            display_name: document.getElementById("display-name").value.trim(),
+            email: document.getElementById("admin-email").value.trim(),
+            password
+          })
+        });
+        document.getElementById("admin-form").reset();
+        setMessage("Admin ameundwa kikamilifu.", true);
+        await loadAdmins();
+      } catch (error) {
+        setMessage(error.message);
+      } finally {
+        button.disabled = false;
+        button.textContent = "Ongeza Admin";
+      }
+    });
+
+    document.getElementById("refresh-admins").addEventListener("click", loadAdmins);
+    document.getElementById("logout").addEventListener("click", async () => {
+      await sb.auth.signOut();
+      window.location.href = "./admin.html";
+    });
+  </script>
+</body>
+</html>
