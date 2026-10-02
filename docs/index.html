@@ -1,1 +1,70 @@
-<!doctype html><html lang="sw"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AFRO SPORT</title><link rel="stylesheet" href="styles.css"></head><body><header class="top"><a class="brand" href="#/">AFRO <span>SPORT</span></a><nav class="nav"><a href="#/">Dashboard</a><a href="#/competitions">Mashindano</a><a href="#/teams">Timu</a><a href="#/players">Wachezaji</a><a href="#/matches">Mechi</a><a href="#/statistics">Statistics</a><a href="#/news">Habari</a><a href="#/admin">Admin</a></nav></header><main id="app" class="wrap"><div class="empty">Inapakia AFRO SPORT...</div></main><script src="config.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="app.js"></script></body></html>
+<!doctype html>
+<html lang="sw">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#07130f">
+  <title>AFRO SPORT · Michezo ya Afro</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand-block">
+        <a class="brand" href="#/"><span class="brand-mark">A</span><span><b>AFRO</b> SPORT</span></a>
+        <button class="sidebar-close" id="sidebarClose" aria-label="Funga menu">×</button>
+      </div>
+      <div class="side-label">MENYU KUU</div>
+      <nav class="side-nav">
+        <a href="#/" data-route="/"><span>⌂</span> Dashibodi</a>
+        <a href="#/competitions"><span>◈</span> Mashindano</a>
+        <a href="#/teams"><span>◆</span> Timu</a>
+        <a href="#/players"><span>♙</span> Wachezaji</a>
+        <a href="#/matches"><span>◷</span> Mechi</a>
+        <a href="#/statistics"><span>▦</span> Takwimu</a>
+        <a href="#/news"><span>▤</span> Habari</a>
+      </nav>
+      <div class="side-label">USIMAMIZI</div>
+      <nav class="side-nav">
+        <a href="#/admin"><span>⚙</span> Admin</a>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="mini-ball">⚽</div>
+        <div><strong>AFRO SPORT</strong><small>Michezo ya Afro</small></div>
+      </div>
+    </aside>
+
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <section class="main-shell">
+      <header class="topbar">
+        <button class="menu-toggle" id="menuToggle" aria-label="Fungua menu">☰</button>
+        <div class="topbar-title">
+          <span class="eyebrow">JUKWAA LA MICHEZO</span>
+          <strong>AFRO SPORT</strong>
+        </div>
+        <div class="topbar-actions">
+          <button class="icon-btn" title="Tafuta">⌕</button>
+          <button class="icon-btn notification" title="Arifa">♢<i></i></button>
+          <a class="profile-chip" href="#/admin"><span>AS</span><div><b>AFRO SPORT</b><small>Dashibodi</small></div></a>
+        </div>
+      </header>
+      <main id="app" class="page-content">
+        <div class="loading-screen"><div class="loader"></div><p>Inapakia AFRO SPORT...</p></div>
+      </main>
+    </section>
+  </div>
+  <script src="config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="app.js"></script>
+  <script>
+    const sidebar=document.getElementById('sidebar'), overlay=document.getElementById('sidebarOverlay');
+    document.getElementById('menuToggle')?.addEventListener('click',()=>{sidebar.classList.add('open');overlay.classList.add('show')});
+    document.getElementById('sidebarClose')?.addEventListener('click',()=>{sidebar.classList.remove('open');overlay.classList.remove('show')});
+    overlay?.addEventListener('click',()=>{sidebar.classList.remove('open');overlay.classList.remove('show')});
+    addEventListener('hashchange',()=>{sidebar.classList.remove('open');overlay.classList.remove('show')});
+  </script>
+</body>
+</html>
