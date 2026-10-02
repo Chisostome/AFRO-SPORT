@@ -55,7 +55,7 @@ export async function updateSession(request: NextRequest) {
         .eq("user_id", user.sub)
         .maybeSingle();
 
-      if (role?.role === "admin") {
+      if (role?.role === "admin" || role?.role === "super_admin") {
         return NextResponse.redirect(new URL("/admin", request.url));
       }
     }
@@ -75,7 +75,7 @@ export async function updateSession(request: NextRequest) {
     .eq("user_id", user.sub)
     .maybeSingle();
 
-  if (role?.role !== "admin") {
+  if (role?.role !== "admin" && role?.role !== "super_admin") {
     const loginUrl = new URL("/admin/login", request.url);
     loginUrl.searchParams.set("error", "not-admin");
     return NextResponse.redirect(loginUrl);
