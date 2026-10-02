@@ -1,44 +1,25 @@
 <!doctype html>
-<html lang="sw">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>AFRO SPORT — Admin</title>
-  <link rel="stylesheet" href="./styles.css">
-  <link rel="manifest" href="./manifest.webmanifest">
+<html lang="sw"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AFRO SPORT — Michezo ya Afro</title><link rel="stylesheet" href="./styles.css?v=20261002-12">  <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./assets/afro-sport-logo.jpg" type="image/jpeg">
   <link rel="apple-touch-icon" href="./assets/afro-sport-logo.jpg">
   <meta name="theme-color" content="#0b0b0b">
 </head>
-<body>
-  <main class="auth-shell">
-    <section class="brand-panel">
-      <img class="brand-logo login-logo" src="./assets/afro-sport-logo.jpg" alt="AFRO SPORT">
-      <p class="eyebrow">AFRO SPORT</p>
-      <h1>MICHEZO YA AFRO</h1>
-      <p>Jukwaa la soka.</p>
-    </section>
-
-    <section class="login-card" aria-labelledby="login-title">
-      <p class="eyebrow">ADMIN</p>
-      <h2 id="login-title">Ingia kwenye mfumo</h2>
-      <p class="muted">Tumia barua pepe na nenosiri la akaunti yako ya Admin.</p>
-
-      <form id="login-form">
-        <label for="email">Barua pepe</label>
-        <input id="email" name="email" type="email" autocomplete="email" required>
-
-        <label for="password">Nenosiri</label>
-        <input id="password" name="password" type="password" autocomplete="current-password" required>
-
-        <button type="submit" id="login-button">Ingia</button>
-        <p id="login-message" class="message" role="alert"></p>
-      </form>
-    </section>
-  </main>
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="./config.js"></script>
-  <script src="./app.js"></script>
-</body>
-</html>
+<body class="public-body">
+<header class="public-header"><a class="public-brand" href="./public.html"><img class="brand-logo public-logo" src="./assets/afro-sport-logo.jpg" alt="AFRO SPORT"><span><strong>AFRO SPORT</strong><small>MICHEZO YA AFRO</small></span></a><nav><a class="active" href="./public.html">Nyumbani</a><a href="#mechi">Mechi</a><a href="#msimamo">Msimamo</a><a href="#wafungaji">Wafungaji</a></nav><a class="admin-link" href="./admin.html">Admin</a></header>
+<main class="public-main">
+<section class="public-hero"><div><p class="eyebrow">AFRO SPORT</p><h1>Jukwaa la soka.</h1><p>Mechi, matokeo, misimamo na wafungaji bora katika sehemu moja.</p></div><img class="hero-logo" src="./assets/afro-sport-logo.jpg" alt="AFRO SPORT"></section>
+<section id="mechi" class="public-section"><div class="section-head"><div><p class="eyebrow">MECHI</p><h2>Mechi za leo</h2></div><span id="today-label"></span></div><div id="today-matches" class="public-grid"><p class="public-empty">Inapakia...</p></div></section>
+<section class="public-section"><div class="section-head"><div><p class="eyebrow">RATIBA</p><h2>Mechi zijazo</h2></div></div><div id="upcoming-matches" class="public-grid"><p class="public-empty">Inapakia...</p></div></section>
+<section id="msimamo" class="public-section"><div class="section-head"><div><p class="eyebrow">MSIMAMO</p><h2>Misimamo ya mashindano</h2></div></div><div id="standings-list" class="public-stack"><p class="public-empty">Inapakia...</p></div></section>
+<section id="wafungaji" class="public-section"><div class="section-head"><div><p class="eyebrow">WAFUNGAJI BORA</p><h2>Wafungaji Bora</h2></div></div><div id="scorers-list" class="public-stack"><p class="public-empty">Inapakia...</p></div></section>
+</main><footer class="public-footer">© AFRO SPORT — MICHEZO YA AFRO</footer>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./config.js"></script>
+<script>
+const {createClient}=window.supabase;const sb=createClient(window.AFRO_SUPABASE_URL,window.AFRO_SUPABASE_PUBLISHABLE_KEY);const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));const now=new Date(),start=new Date(now.getFullYear(),now.getMonth(),now.getDate()),end=new Date(start);end.setDate(end.getDate()+1);
+function matchCard(m){const dt=m.kickoff_at?new Date(m.kickoff_at):null;return '<article class="match-card"><div class="match-meta">'+esc(m.stage?.leagues?.name||"Mashindano")+" · "+esc(m.stage?.seasons?.name||"")+'<span>'+ (dt?dt.toLocaleTimeString("sw-TZ",{hour:"2-digit",minute:"2-digit"}):"Muda haujawekwa")+'</span></div><div class="match-teams"><strong>'+esc(m.home?.name||"Nyumbani")+'</strong><b>'+ (m.status==="completed"?(m.home_score+" - "+m.away_score):"vs") +'</b><strong>'+esc(m.away?.name||"Ugenini")+'</strong></div><small>'+esc(m.venue||"Uwanja haujawekwa")+'</small></article>'}
+async function loadMatches(){const sel="id,stage_id,home_team_id,away_team_id,kickoff_at,venue,status,home_score,away_score,stage:competition_stages!inner(name,seasons!inner(name,leagues!inner(name))),home:teams!matches_home_team_id_fkey(name),away:teams!matches_away_team_id_fkey(name)";const [today,upcoming]=await Promise.all([sb.from("matches").select(sel).gte("kickoff_at",start.toISOString()).lt("kickoff_at",end.toISOString()).neq("status","cancelled").order("kickoff_at"),sb.from("matches").select(sel).gte("kickoff_at",end.toISOString()).in("status",["scheduled","live"]).order("kickoff_at").limit(8)]);document.getElementById("today-label").textContent=start.toLocaleDateString("sw-TZ",{weekday:"long",day:"numeric",month:"long"});document.getElementById("today-matches").innerHTML=today.error?'<p class="public-empty">Imeshindikana kupakia mechi.</p>':(today.data?.length?today.data.map(matchCard).join(""):'<p class="public-empty">Hakuna mechi za leo.</p>');document.getElementById("upcoming-matches").innerHTML=upcoming.error?'<p class="public-empty">Imeshindikana kupakia ratiba.</p>':(upcoming.data?.length?upcoming.data.map(matchCard).join(""):'<p class="public-empty">Hakuna mechi zijazo zilizopangwa.</p>')}
+async function loadStandings(){const {data,error}=await sb.from("standings_calculated").select("stage_id,team_id,matches_played,wins,draws,losses,gd,points,teams!inner(name),stage:competition_stages!inner(name,seasons!inner(name,leagues!inner(name)))").order("points",{ascending:false}).order("goals_for",{ascending:false});const box=document.getElementById("standings-list");if(error){box.innerHTML='<p class="public-empty">Imeshindikana kupakia misimamo.</p>';return}const groups={};(data||[]).forEach(r=>{const k=r.stage_id;(groups[k]??=[]).push(r)});const vals=Object.values(groups).slice(0,6);box.innerHTML=vals.length?vals.map(rows=>'<div class="public-card"><h3>'+esc(rows[0].stage?.leagues?.name||"Mashindano")+" — "+esc(rows[0].stage?.seasons?.name||"")+" — "+esc(rows[0].stage?.name||"Hatua")+'</h3><div class="mini-table"><div class="mini-row head"><span>#</span><span>Timu</span><span>MP</span><span>GD</span><span>PTS</span></div>'+rows.slice(0,8).map((r,i)=>'<div class="mini-row"><span>'+ (i+1) +'</span><strong>'+esc(r.teams?.name||"")+'</strong><span>'+r.matches_played+'</span><span>'+esc(r.gd)+'</span><strong>'+r.points+'</strong></div>').join("")+'</div></div>').join(""):'<p class="public-empty">Hakuna msimamo unaopatikana bado.</p>'}
+async function loadScorers(){const {data,error}=await sb.from("top_scorers_calculated").select("player_id,first_name,last_name,team_name,goals,stage_id").order("goals",{ascending:false}).limit(10);const box=document.getElementById("scorers-list");if(error){box.innerHTML='<p class="public-empty">Imeshindikana kupakia wafungaji.</p>';return}box.innerHTML=data?.length?'<div class="public-card"><div class="mini-table">'+data.map((r,i)=>'<div class="mini-row scorer-row"><span>'+ (i+1) +'</span><strong>'+esc((r.first_name||"")+" "+(r.last_name||""))+'</strong><span>'+esc(r.team_name||"")+'</span><strong>'+r.goals+' G</strong></div>').join("")+'</div></div>':'<p class="public-empty">Hakuna magoli yaliyorekodiwa bado.</p>'}
+Promise.all([loadMatches(),loadStandings(),loadScorers()]).catch(console.error);
+</script></body></html>
