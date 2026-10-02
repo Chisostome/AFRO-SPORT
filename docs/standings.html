@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="sw">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AFRO SPORT — Msimamo</title>
+<link rel="stylesheet" href="./styles.css?v=20261002-9">
+</head>
+<body class="admin-body">
+<aside class="sidebar">
+  <div class="sidebar-brand"><div class="brand-mark">AS</div><div><strong>AFRO SPORT</strong><span>MICHEZO YA AFRO</span></div></div>
+  <nav class="admin-nav" aria-label="Menyu ya Admin">
+    <a href="./dashboard.html">⌂ <span>Dashibodi</span></a>
+    <a href="./leagues.html">🏆 <span>Ligi</span></a>
+    <a href="./teams.html">⚽ <span>Timu</span></a>
+    <a href="./players.html">👤 <span>Wachezaji</span></a>
+    <a href="./matches.html">📅 <span>Mechi</span></a>
+    <a class="active" href="./standings.html">📊 <span>Msimamo</span></a>
+    <a href="#" data-coming="Wafungaji Bora">🥇 <span>Wafungaji Bora</span></a>
+    <a href="#" data-coming="Takwimu">📈 <span>Takwimu</span></a>
+  </nav>
+  <button class="logout-button" id="logout">Toka</button>
+</aside>
+
+<main class="admin-main">
+<header class="topbar">
+  <div><p class="eyebrow">TAKWIMU</p><h1>Msimamo</h1></div>
+  <div class="admin-user"><strong id="role-label">Inapakia...</strong><span id="user-email"></span></div>
+</header>
+
+<section class="page-intro">
+  <div><p class="eyebrow">MSIMAMO WA LIGI</p><h2>Msimamo unaohesabiwa moja kwa moja</h2><p>Unatokana na mechi zilizokamilika. Ushindi = 3, sare = 1, kufungwa = 0.</p></div>
+</section>
+
+<section class="panel">
+  <div class="admin-form">
+    <label for="stage-select">Hatua</label>
+    <select id="stage-select"><option value="">Chagua hatua</option></select>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="panel-head">
+    <div><p class="eyebrow">MSIMAMO</p><h3 id="table-title">Chagua hatua</h3></div>
+    <span class="count-badge" id="team-total">0</span>
+  </div>
+  <div id="standings-wrap"><p class="empty-state">Chagua hatua kuona msimamo.</p></div>
+</section>
+<p id="page-message" class="message page-message"></p>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="./config.js"></script>
+<script>
+const {createClient}=window.supabase;
+const sb=createClient(window.AFRO_SUPABASE_URL,window.AFRO_SUPABASE_PUBLISHABLE_KEY);
+const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
+let stages=[];
+
+async function requireAdmin(){
+  const {data:{user}}=await sb.auth.getUser();
+  if(!user){location.href="./index.html";return false;}
+  const {data:role}=await sb.from("user_roles").select("role").eq("user_id",user.id).maybeSingle();
+  if(!role||!["super_admin","admin"].includes(role.role)){await sb.auth.signOut();location.href="./index.html";return false;}
+  document.getElementById("role-label").textContent=role.role==="super_admin"?"Super Admin":"Admin";
+  document.getElementById("user-email").textContent=user.email||"";
+  return true;
+}
+
+async function loadStages(){
+  const {data,error}=await sb.from("competition_stages")
+    .select("id,name,stage_type,seasons!inner(id,name,leagues!inner(name))")
+    .order("created_at",{ascending:false});
+  if(error){document.getElementById("page-message").textContent="Imeshindikana kupakia hatua.";return;}
+  stages=data||[];
+  document.getElementById("stage-select").innerHTML='<option value="">Chagua hatua</option>'+
+    stages.map(s=>'<option value="'+s.id+'">'+esc(s.seasons?.leagues?.name||"Ligi")+" — "+esc(s.seasons?.name||"Msimu")+" — "+esc(s.name)+'</option>').join("");
+}
+
+async function loadStandings(stageId){
+  const wrap=document.getElementById("standings-wrap");
+  if(!stageId){wrap.innerHTML='<p class="empty-state">Chagua hatua kuona msimamo.</p>';document.getElementById("team-total").textContent="0";return;}
+  const stage=stages.find(x=>x.id===stageId);
+  document.getElementById("table-title").textContent=(stage?.seasons?.leagues?.name||"Ligi")+" — "+(stage?.seasons?.name||"Msimu")+" — "+(stage?.name||"Hatua");
+  wrap.innerHTML='<p class="empty-state">Inapakia msimamo...</p>';
+  const {data,error}=await sb.from("standings_calculated")
+    .select("stage_id,group_id,team_id,matches_played,wins,draws,losses,goals_for,goals_against,gd,points,teams!inner(name,short_name)")
+    .eq("stage_id",stageId)
+    .order("points",{ascending:false})
+    .order("goals_for",{ascending:false})
+    .order("goals_against",{ascending:true})
+    .order("team_id",{ascending:true});
+  if(error){wrap.innerHTML='<p class="empty-state error-state">Imeshindikana kupakia msimamo.</p>';return;}
+  const rows=data||[];
+  document.getElementById("team-total").textContent=rows.length;
+  if(!rows.length){wrap.innerHTML='<p class="empty-state">Hakuna matokeo ya mechi yaliyokamilika kwa hatua hii bado.</p>';return;}
+  const groups={};
+  rows.forEach(r=>{const key=r.group_id||"__league__";(groups[key]??=[]).push(r);});
+  const blocks=Object.entries(groups).map(([groupId,items])=>{
+    const groupTitle=groupId==="__league__"?"Msimamo":("Kikundi");
+    return '<div class="table-wrap"><h4>'+groupTitle+'</h4><table class="data-table"><thead><tr><th>#</th><th>Timu</th><th>MP</th><th>W</th><th>D</th><th>L</th><th>GD</th><th>PTS</th></tr></thead><tbody>'+
+      items.map((r,i)=>'<tr><td>'+(i+1)+'</td><td><strong>'+esc(r.teams?.name||"Timu")+'</strong>'+(r.teams?.short_name?" <small>"+esc(r.teams.short_name)+"</small>":"")+'</td><td>'+r.matches_played+'</td><td>'+r.wins+'</td><td>'+r.draws+'</td><td>'+r.losses+'</td><td>'+esc(r.gd)+'</td><td><strong>'+r.points+'</strong></td></tr>').join("")+
+      '</tbody></table></div>';
+  }).join("");
+  wrap.innerHTML=blocks;
+}
+
+document.getElementById("stage-select").addEventListener("change",e=>loadStandings(e.target.value));
+document.getElementById("logout").onclick=async()=>{await sb.auth.signOut();location.href="./index.html";};
+document.querySelectorAll("[data-coming]").forEach(l=>l.onclick=e=>{e.preventDefault();document.getElementById("page-message").textContent=l.dataset.coming+" itajengwa katika hatua inayofuata.";});
+
+(async()=>{try{if(await requireAdmin())await loadStages();}catch(error){console.error(error);document.getElementById("page-message").textContent="Imeshindikana kupakia ukurasa.";}})();
+</script>
+</body>
+</html>
