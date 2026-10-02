@@ -368,3 +368,8 @@ input[type="file"]{padding:9px!important;background:#f8faf9!important}
 .player-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:22px}.player-info-grid>div{border:1px solid var(--line);border-radius:12px;padding:13px;background:#fff}.player-info-grid span,.player-info-grid strong{display:block}.player-info-grid span{font-size:10px;color:var(--muted);margin-bottom:5px}.player-info-grid strong{font-size:13px}
 .player-team-list{margin-top:15px;display:grid;gap:8px}.player-team-item{display:flex;justify-content:space-between;gap:12px;border:1px solid var(--line);border-radius:12px;padding:13px;background:#fff}.player-team-item strong,.player-team-item span{display:block}.player-team-item span{font-size:11px;color:var(--muted);margin-top:4px}
 @media(max-width:1000px){.player-detail-layout{grid-template-columns:1fr}}@media(max-width:680px){.player-profile{align-items:flex-start}.player-profile-avatar{width:88px;height:88px}.player-info-grid{grid-template-columns:1fr}}
+
+
+/* Msimamo */
+.table-wrap{overflow:auto;margin-top:12px}.table-wrap h4{margin:0 0 10px;font-size:14px}
+.data-table{width:100%;border-collapse:collapse;min-width:650px;background:#fff}.data-table th,.data-table td{padding:12px 10px;border-bottom:1px solid var(--line);text-align:left;font-size:12px}.data-table th{font-size:10px;text-transform:uppercase;color:var(--muted);letter-spacing:.04em;background:#f7faf8}.data-table td:not(:nth-child(2)){white-space:nowrap}.data-table td:first-child,.data-table th:first-child{text-align:center;width:42px}.data-table td small{display:block;color:var(--muted);font-size:10px;margin-top:2px}
