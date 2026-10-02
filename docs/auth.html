@@ -122,7 +122,7 @@ forgotForm.addEventListener("submit",async e=>{
   const btn=document.getElementById("forgot-button"),m=document.getElementById("forgot-message");
   msg(m,"");btn.disabled=true;btn.textContent="Inatuma...";
   const email=document.getElementById("forgot-email").value.trim();
-  const redirectTo=new URL("./update-password.html",location.href).href;
+  const redirectTo="https://chisostome.github.io/AFRO-SPORT/update-password.html";
   const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo});
   if(error){msg(m,"Imeshindikana kutuma kiungo. Jaribu tena baadaye.","error");}
   else{msg(m,"Ikiwa barua pepe hii ina akaunti, kiungo cha kuweka nenosiri jipya kimetumwa.","success");}
@@ -134,7 +134,7 @@ signupForm.addEventListener("submit",async e=>{
   msg(m,"");const name=document.getElementById("signup-name").value.trim(),email=document.getElementById("signup-email").value.trim(),p=document.getElementById("signup-password").value,p2=document.getElementById("signup-password-confirm").value;
   if(p!==p2){msg(m,"Nenosiri mbili hazifanani.","error");return}
   btn.disabled=true;btn.textContent="Inasajili...";
-  const redirectTo=new URL("./auth.html",location.href).href;
+  const redirectTo="https://chisostome.github.io/AFRO-SPORT/auth.html";
   const {data,error}=await sb.auth.signUp({email,password:p,options:{data:{display_name:name},emailRedirectTo:redirectTo}});
   if(error){msg(m,error.message.includes("already registered")?"Barua pepe hii tayari imesajiliwa.":"Imeshindikana kusajili akaunti.","error");btn.disabled=false;btn.textContent="Jisajili";return}
   if(data.session){msg(m,"Akaunti imefunguliwa. Inaingia...","success");setTimeout(()=>routeUser(data.user),300)}
