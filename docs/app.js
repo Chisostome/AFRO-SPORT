@@ -190,59 +190,128 @@ async function adminLineup(id){
  const teamPlayers=team=>players.filter(p=>p.team_id===team);
  const savedFor=team=>saved.find(x=>x.team_id===team);
  const formationOptions=["4-3-3","4-2-3-1","4-4-2","4-1-4-1","3-4-3","3-5-2","5-3-2"].map(v=>'<option value="'+v+'">'+v+'</option>').join("");
- const playerOption=p=>'<option value="'+p.player_id+'">'+esc(p.players?.full_name||p.players?.name||"")+' · #'+esc(p.jersey_number??p.players?.jersey_number??"")+'</option>';
+ const playerName=p=>p.players?.full_name||p.players?.name||"Mchezaji";
+ const playerPhoto=p=>p.players?.photo_url?'<img src="'+esc(p.players.photo_url)+'" alt="">':'<span>👤</span>';
  const setupTeam=(team,side)=>{
-  const list=teamPlayers(team), old=savedFor(team), starters=(old?.match_lineup_players||[]).filter(x=>x.starter).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0)), bench=(old?.match_lineup_players||[]).filter(x=>!x.starter).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0));
-  return '<section class="card lineup-editor"><div class="lineup-editor-head">'+(team===m.data.home_team_id?(m.data.home_team?.logo_url?'<img class="team-logo" src="'+esc(m.data.home_team.logo_url)+'" alt="">':''):(m.data.away_team?.logo_url?'<img class="team-logo" src="'+esc(m.data.away_team.logo_url)+'" alt="">':''))+'<div><div class="tag">'+(side==="home"?"HOME":"AWAY")+'</div><h2>'+esc(team===m.data.home_team_id?m.data.home_team?.name:m.data.away_team?.name)+'</h2></div></div><form id="lineup-'+side+'" class="form lineup-form" data-team="'+team+'" data-side="'+side+'"><label>Formation<select class="lineup-formation">'+formationOptions+'</select></label><label>Wachezaji 11 wa kuanza<select class="lineup-starters" multiple size="13">'+list.map(playerOption).join("")+'</select></label><small class="muted">Chagua wachezaji 11 tu. Mpangilio wa majina unaweza kubadilishwa kwa kuzingatia nafasi zao.</small><label>Wachezaji wa Akiba<select class="lineup-bench" multiple size="8">'+list.map(playerOption).join("")+'</select></label><label>Captain<select class="lineup-captain"><option value="">Chagua Captain</option>'+list.map(playerOption).join("")+'</select></label><button class="btn">Hifadhi Lineup</button><div class="lineup-msg"></div></form></section>';
+  const list=teamPlayers(team), old=savedFor(team), oldRows=old?.match_lineup_players||[];
+  const starters=oldRows.filter(x=>x.starter);
+  const starterIds=new Set(starters.map(x=>x.player_id));
+  const benchIds=new Set(oldRows.filter(x=>!x.starter).map(x=>x.player_id));
+  const savedMap=new Map(oldRows.map(x=>[x.player_id,x]));
+  const roster=list.map(p=>{
+   const row=savedMap.get(p.player_id), isStarter=starterIds.has(p.player_id), isBench=benchIds.has(p.player_id);
+   return '<div class="lineup-roster-player '+(isStarter?"is-starter ":"")+(isBench?"is-bench ":"")+'" draggable="true" data-player="'+p.player_id+'">'+
+     '<div class="roster-photo">'+playerPhoto(p)+'</div><span><b>'+esc(playerName(p))+'</b><small>#'+esc(p.jersey_number??"—")+' · '+esc(p.position||"")+'</small></span>'+
+     '<em>'+(isStarter?"XI":isBench?"BENCHI":"")+'</em></div>';
+  }).join("");
+  const pitchPlayers=starters.map(x=>{
+   const p=list.find(v=>v.player_id===x.player_id); if(!p)return "";
+   const px=x.position_x??50,py=x.position_y??50;
+   return '<div class="pitch-editor-player" draggable="true" data-player="'+p.player_id+'" style="left:'+px+'%;top:'+py+'%">'+
+    '<div class="pitch-editor-photo">'+playerPhoto(p)+'</div><b>'+esc(playerName(p))+'</b><small>#'+esc(p.jersey_number??"—")+'</small></div>';
+  }).join("");
+  const bench=oldRows.filter(x=>!x.starter).map(x=>{
+   const p=list.find(v=>v.player_id===x.player_id);if(!p)return "";
+   return '<div class="bench-drop-player" draggable="true" data-player="'+p.player_id+'"><div class="roster-photo">'+playerPhoto(p)+'</div><span><b>'+esc(playerName(p))+'</b><small>#'+esc(p.jersey_number??"—")+' · '+esc(p.position||"")+'</small></span></div>';
+  }).join("");
+  return '<section class="card lineup-editor" data-team="'+team+'" data-side="'+side+'">'+
+   '<div class="lineup-editor-head">'+(team===m.data.home_team_id?(m.data.home_team?.logo_url?'<img class="team-logo" src="'+esc(m.data.home_team.logo_url)+'" alt="">':''):(m.data.away_team?.logo_url?'<img class="team-logo" src="'+esc(m.data.away_team.logo_url)+'" alt="">':''))+
+   '<div><div class="tag">'+(side==="home"?"HOME":"AWAY")+'</div><h2>'+esc(team===m.data.home_team_id?m.data.home_team?.name:m.data.away_team?.name)+'</h2></div></div>'+
+   '<div class="lineup-editor-toolbar"><label>Formation<select class="lineup-formation">'+formationOptions+'</select></label><label>Captain<select class="lineup-captain"><option value="">Chagua Captain</option>'+list.map(p=>'<option value="'+p.player_id+'">'+esc(playerName(p))+'</option>').join("")+'</select></label></div>'+
+   '<div class="lineup-dnd-help">Buruta mchezaji kutoka <b>Orodha ya Kikosi</b> kwenda uwanjani. Buruta tena kubadilisha nafasi; mpeleke kwenye <b>Benchi</b> kumtoa XI.</div>'+
+   '<div class="lineup-dnd-layout">'+
+     '<div class="lineup-roster"><div class="lineup-subtitle"><b>Orodha ya Kikosi</b><span class="roster-count">0/11 XI</span></div><div class="lineup-roster-list">'+roster+'</div></div>'+
+     '<div class="lineup-dnd-pitch-wrap"><div class="pitch lineup-dnd-pitch" data-side="'+side+'">'+
+       '<div class="pitch-lines"><div class="pitch-center-circle"></div><div class="pitch-center-dot"></div><div class="pitch-half"></div><div class="pitch-box pitch-box-top"></div><div class="pitch-box pitch-box-bottom"></div><div class="pitch-goal pitch-goal-top"></div><div class="pitch-goal pitch-goal-bottom"></div></div>'+
+       '<div class="pitch-team-label pitch-away-label"><b>'+(side==="away"?esc(m.data.away_team?.name):"")+'</b><span>XI</span></div><div class="pitch-team-label pitch-home-label"><b>'+(side==="home"?esc(m.data.home_team?.name):"")+'</b><span>XI</span></div>'+
+       '<div class="pitch-drop-hint">BURUTA HAPA</div>'+pitchPlayers+
+     '</div></div>'+
+   '</div>'+
+   '<div class="bench-dropzone" data-drop-bench="true"><div class="bench-head"><div><div class="tag">AKIBA</div><h3>Wachezaji wa Benchi</h3></div><span class="bench-count">'+bench.length+'</span></div><div class="bench-drop-list">'+(bench||'<div class="bench-empty">Buruta wachezaji hapa ili wawe akiba.</div>')+'</div></div>'+
+   '<button class="btn lineup-save-btn">Hifadhi Lineup</button><div class="lineup-msg"></div></section>';
  };
- shell("Lineup · "+esc(m.data.home_team?.name)+" vs "+esc(m.data.away_team?.name),'<div class="detail"><section class="card"><div class="tag">MPANGILIO WA MCHEZO</div><h2>Wachezaji 11 + Akiba</h2><p class="muted">Chagua formation, wachezaji 11 wa kuanza, Captain na benchi. Mfumo utaweka wachezaji kwenye uwanja moja kwa moja.</p></section><div class="cards lineup-edit-grid">'+setupTeam(m.data.home_team_id,"home")+setupTeam(m.data.away_team_id,"away")+'</div></div>');
- document.querySelectorAll(".lineup-form").forEach(form=>{
-  const team=form.dataset.team, side=form.dataset.side, old=savedFor(team), starters=form.querySelector(".lineup-starters"), bench=form.querySelector(".lineup-bench"), captain=form.querySelector(".lineup-captain"), formation=form.querySelector(".lineup-formation"), msg=form.querySelector(".lineup-msg");
+ shell("Lineup · "+esc(m.data.home_team?.name)+" vs "+esc(m.data.away_team?.name),
+   '<div class="card"><div class="tag">DRAG & DROP</div><h2>Mpangilio wa Uwanja</h2><p class="muted">Panga wachezaji 11 kwa kuwavuta moja kwa moja kwenye uwanja. Unaweza kuwasogeza popote, kubadilisha formation, na kuweka wengine benchi.</p></div><div class="lineup-admin-grid">'+setupTeam(m.data.home_team_id,"home")+setupTeam(m.data.away_team_id,"away")+'</div>');
+ document.querySelectorAll(".lineup-editor").forEach(editor=>{
+  const team=editor.dataset.team,side=editor.dataset.side,old=savedFor(team),pitch=editor.querySelector(".lineup-dnd-pitch"),rosterList=editor.querySelector(".lineup-roster-list"),benchZone=editor.querySelector(".bench-dropzone"),benchList=editor.querySelector(".bench-drop-list"),count=editor.querySelector(".roster-count"),benchCount=editor.querySelector(".bench-count"),formation=editor.querySelector(".lineup-formation"),captain=editor.querySelector(".lineup-captain"),msg=editor.querySelector(".lineup-msg");
+  const rosterData=new Map(teamPlayers(team).map(p=>[p.player_id,p]));
   if(old?.formation)formation.value=old.formation;
-  const oldPlayers=old?.match_lineup_players||[];
-  [...starters.options].forEach(o=>o.selected=oldPlayers.some(x=>x.player_id===o.value&&x.starter));
-  [...bench.options].forEach(o=>o.selected=oldPlayers.some(x=>x.player_id===o.value&&!x.starter));
   captain.value=old?.captain_player_id||"";
-  const syncSelections=()=>{
-   const starterIds=new Set([...starters.selectedOptions].map(o=>o.value));
-   [...bench.options].forEach(o=>{o.disabled=starterIds.has(o.value);if(o.disabled)o.selected=false});
-   [...starters.options].forEach(o=>{o.disabled=[...bench.selectedOptions].some(b=>b.value===o.value)});
+  const state=new Map();
+  (old?.match_lineup_players||[]).forEach(x=>state.set(x.player_id,{starter:!!x.starter,x:x}));
+  const fallbackPosition=()=>({x:side==="home"?50:50,y:side==="home"?72:28});
+  const setState=(pid,starter,x,y)=>{
+   const row=state.get(pid)?.x||{};
+   state.set(pid,{starter,x:{...row,position_x:x,position_y:y,position:row.position||rosterData.get(pid)?.position||null}});
   };
-  starters.onchange=syncSelections;bench.onchange=syncSelections;syncSelections();
-  form.onsubmit=async e=>{
-   e.preventDefault();
-   const starterIds=[...starters.selectedOptions].map(o=>o.value), benchIds=[...bench.selectedOptions].map(o=>o.value);
-   if(starterIds.length!==11){msg.textContent="Lazima uchague wachezaji 11 wa kuanza.";return}
-   const overlap=starterIds.some(x=>benchIds.includes(x));if(overlap){msg.textContent="Mchezaji hawezi kuwa starter na akiba kwa wakati mmoja.";return}
-   if(captain.value&&!starterIds.includes(captain.value)){msg.textContent="Captain lazima awe kwenye 11 wa kuanza.";return}
-   const all=[...starterIds,...benchIds];
-   const g=formation.value.split("-").map(Number);
-   const defCount=g[0]||4, midCounts=g.slice(1,-1), attCount=g[g.length-1]||3;
-   const slots=[{position:"goalkeeper",x:50,y:92}];
-   const line=(count,y,pos)=>{if(!count)return;for(let i=0;i<count;i++)slots.push({position:pos,x:((i+1)*100/(count+1)),y})};
-   line(defCount,70,"defender"); line(midCounts.reduce((a,b)=>a+b,0),48,"midfielder"); line(attCount,25,"striker");
-   const ordered=starterIds.map((pid,i)=>({pid,i}));
-   const used=new Set(); const items=[];
-   const takeByPos=(pos,count)=>{
-    const picked=ordered.filter(x=>!used.has(x.pid)&&players.find(p=>p.player_id===x.pid)?.position===pos).slice(0,count);
-    picked.forEach(x=>used.add(x.pid));return picked;
-   };
-   let cursor=0;
-   const gk=takeByPos("goalkeeper",1);gk.forEach(x=>items.push({pid:x.pid,slot:slots[0]}));
-   const groups=[["defender",defCount],["midfielder",midCounts.reduce((a,b)=>a+b,0)],["striker",attCount]];
-   let slotStart=1;
-   groups.forEach(([pos,count])=>{let picked=takeByPos(pos,count);while(picked.length<count){const x=ordered.find(z=>!used.has(z.pid));if(!x)break;used.add(x.pid);picked.push(x)}picked.forEach((x,j)=>items.push({pid:x.pid,slot:slots[slotStart+j]}));slotStart+=count});
-   const byId=new Map(items.map(x=>[x.pid,x]));
-   const payload=all.map((pid,i)=>{const isStarter=starterIds.includes(pid), x=byId.get(pid);let px=null,py=null,position=null;if(isStarter&&x){px=side==="away"?100-x.slot.x:x.slot.x;py=side==="away"?100-x.slot.y:x.slot.y;position=x.slot.position}return {player_id:pid,starter:isStarter,position,position_x:px,position_y:py,sort_order:isStarter?starterIds.indexOf(pid):100+benchIds.indexOf(pid)}});
+  const makeRosterPlayer=(p)=>{
+   const row=state.get(p.player_id), cls=row?.starter?"is-starter":row?"is-bench":"";
+   const el=document.createElement("div");el.className="lineup-roster-player "+cls;el.draggable=true;el.dataset.player=p.player_id;
+   el.innerHTML='<div class="roster-photo">'+playerPhoto(p)+'</div><span><b>'+esc(playerName(p))+'</b><small>#'+esc(p.jersey_number??"—")+' · '+esc(p.position||"")+'</small></span><em>'+ (row?.starter?"XI":row?"BENCHI":"")+'</em>';
+   return el;
+  };
+  const makeBenchPlayer=(p)=>{
+   const el=document.createElement("div");el.className="bench-drop-player";el.draggable=true;el.dataset.player=p.player_id;
+   el.innerHTML='<div class="roster-photo">'+playerPhoto(p)+'</div><span><b>'+esc(playerName(p))+'</b><small>#'+esc(p.jersey_number??"—")+' · '+esc(p.position||"")+'</small></span>';return el;
+  };
+  const render=()=>{
+   rosterList.innerHTML="";benchList.innerHTML="";
+   const starters=[...state.entries()].filter(([,v])=>v.starter);
+   const bench=[...state.entries()].filter(([,v])=>!v.starter);
+   teamPlayers(team).forEach(p=>rosterList.appendChild(makeRosterPlayer(p)));
+   bench.forEach(([pid])=>benchList.appendChild(makeBenchPlayer(rosterData.get(pid))));
+   if(!bench.length)benchList.innerHTML='<div class="bench-empty">Buruta wachezaji hapa ili wawe akiba.</div>';
+   editor.querySelectorAll(".pitch-editor-player").forEach(x=>x.remove());
+   starters.forEach(([pid,v])=>{
+    const p=rosterData.get(pid);if(!p)return;
+    const pos=v.x?.position_x!=null?v.x.position_x:(v.x?.position_y!=null?50:fallbackPosition().x);
+    const py=v.x?.position_y!=null?v.x.position_y:fallbackPosition().y;
+    const el=document.createElement("div");el.className="pitch-editor-player";el.draggable=true;el.dataset.player=pid;el.style.left=pos+"%";el.style.top=py+"%";
+    el.innerHTML='<div class="pitch-editor-photo">'+playerPhoto(p)+'</div><b>'+esc(playerName(p))+'</b><small>#'+esc(p.jersey_number??"—")+'</small>';
+    pitch.appendChild(el);
+   });
+   count.textContent=starters.length+"/11 XI";benchCount.textContent=bench.length;
+   const captainIsStarter=captain.value&&starters.some(([pid])=>pid===captain.value);if(captain.value&&!captainIsStarter)captain.value="";
+   editor.classList.toggle("lineup-complete",starters.length===11);
+  };
+  const dragPayload=e=>{const el=e.currentTarget;e.dataTransfer.setData("text/plain",el.dataset.player);e.dataTransfer.effectAllowed="move";el.classList.add("dragging");};
+  editor.addEventListener("dragstart",e=>{if(e.target.closest("[data-player]"))dragPayload(e)});
+  editor.addEventListener("dragend",e=>e.target.closest("[data-player]")?.classList.remove("dragging"));
+  const placeOnPitch=(pid,e)=>{
+   if(!rosterData.has(pid))return;
+   const rect=pitch.getBoundingClientRect(),x=Math.max(3,Math.min(97,((e.clientX-rect.left)/rect.width)*100)),y=Math.max(4,Math.min(96,((e.clientY-rect.top)/rect.height)*100));
+   const current=state.get(pid);
+   if(!current?.starter&&[...state.values()].filter(v=>v.starter).length>=11){msg.textContent="XI tayari ina wachezaji 11. Mtoe mmoja kwanza au mpeleke mmoja benchi.";return}
+   setState(pid,true,x,y);msg.textContent="";render();
+  };
+  pitch.addEventListener("dragover",e=>{e.preventDefault();pitch.classList.add("drop-active")});
+  pitch.addEventListener("dragleave",()=>pitch.classList.remove("drop-active"));
+  pitch.addEventListener("drop",e=>{e.preventDefault();pitch.classList.remove("drop-active");placeOnPitch(e.dataTransfer.getData("text/plain"),e)});
+  benchZone.addEventListener("dragover",e=>{e.preventDefault();benchZone.classList.add("drop-active")});
+  benchZone.addEventListener("dragleave",()=>benchZone.classList.remove("drop-active"));
+  benchZone.addEventListener("drop",e=>{e.preventDefault();benchZone.classList.remove("drop-active");const pid=e.dataTransfer.getData("text/plain");if(!rosterData.has(pid))return;const row=state.get(pid)?.x||{};state.set(pid,{starter:false,x:row});if(captain.value===pid)captain.value="";render()});
+  editor.addEventListener("dblclick",e=>{const el=e.target.closest(".pitch-editor-player");if(!el)return;const pid=el.dataset.player;const row=state.get(pid)?.x||{};state.set(pid,{starter:false,x:row});if(captain.value===pid)captain.value="";render()});
+  pitch.addEventListener("pointerdown",e=>{
+   const player=e.target.closest(".pitch-editor-player");if(!player)return;
+   e.preventDefault();const pid=player.dataset.player,rect=pitch.getBoundingClientRect(),move=ev=>{
+    const x=Math.max(3,Math.min(97,((ev.clientX-rect.left)/rect.width)*100)),y=Math.max(4,Math.min(96,((ev.clientY-rect.top)/rect.height)*100));const row=state.get(pid)?.x||{};state.set(pid,{starter:true,x:{...row,position_x:x,position_y:y}});player.style.left=x+"%";player.style.top=y+"%";
+   },up=()=>{window.removeEventListener("pointermove",move);window.removeEventListener("pointerup",up);render()};window.addEventListener("pointermove",move);window.addEventListener("pointerup",up);
+  });
+  formation.onchange=()=>{msg.textContent="Formation imebadilishwa. Unaweza kusogeza kila mchezaji mwenyewe.";};
+  captain.onchange=()=>{if(captain.value&&!state.get(captain.value)?.starter){msg.textContent="Captain lazima awe kwenye XI.";captain.value="";}};
+  editor.querySelector(".lineup-save-btn").onclick=async()=>{
+   const starters=[...state.entries()].filter(([,v])=>v.starter),bench=[...state.entries()].filter(([,v])=>!v.starter);
+   if(starters.length!==11){msg.textContent="Lazima uweke wachezaji 11 uwanjani kabla ya kuhifadhi.";return}
+   if(captain.value&&!state.get(captain.value)?.starter){msg.textContent="Captain lazima awe kwenye XI.";return}
+   const payload=[...starters,...bench].map(([pid,v],i)=>{const p=rosterData.get(pid),x=v.x||{};return {player_id:pid,starter:!!v.starter,position:v.starter?(x.position||p.position||null):null,position_x:v.starter?(x.position_x??50):null,position_y:v.starter?(x.position_y??50):null,sort_order:i}});
    msg.textContent="Inahifadhi...";
    const r=await db.rpc("save_match_lineup",{p_match_id:id,p_team_id:team,p_formation:formation.value,p_captain_player_id:captain.value||null,p_players:payload});
-   msg.textContent=r.error?r.error.message:"Lineup imehifadhiwa. Uwanja wa mechi umesasishwa.";
-   if(!r.error)setTimeout(()=>adminLineup(id),500);
+   msg.textContent=r.error?r.error.message:"Lineup imehifadhiwa. Mpangilio wa uwanja wa public umeboreshwa.";
+   if(!r.error){state.clear();setTimeout(()=>adminLineup(id),450)}
   };
+  render();
  });
-}
-
-async function adminMatches(){
+}\nasync function adminMatches(){
  const {data:{session}}=await db.auth.getSession(); if(!session)return admin();
  const leagues=(await db.from("leagues").select("id,name").order("name")).data||[];
  shell("Admin · Mechi",'<div class="cards"><div class="card"><h2>Tengeneza Fixture</h2><form id="matchForm" class="form"><select id="mLeague" required><option value="">Ligi</option>'+leagues.map(x=>'<option value="'+x.id+'">'+esc(x.name)+'</option>').join("")+'</select><select id="mSeason" required><option value="">Msimu</option></select><select id="mStage"><option value="">Stage (optional)</option></select><select id="mHome" required><option value="">Home</option></select><select id="mAway" required><option value="">Away</option></select><input id="mDate" type="datetime-local" required><input id="mVenue" placeholder="Uwanja"><input id="mRound" placeholder="Round / Jina la hatua"><input id="mLeg" type="number" min="1" value="1" placeholder="Leg"><button class="btn">Hifadhi Fixture</button><div id="matchMsg"></div></form></div><div class="card"><h2>Weka Matokeo</h2><form id="resultForm" class="form"><select id="rMatch" required><option value="">Chagua mechi</option></select><input id="rHome" type="number" min="0" value="0" required><input id="rAway" type="number" min="0" value="0" required><input id="rHP" type="number" min="0" placeholder="Home penalties (optional)"><input id="rAP" type="number" min="0" placeholder="Away penalties (optional)"><button class="btn">Maliza Mechi</button><div id="resultMsg"></div></form><div id="shootoutBox" class="form" style="margin-top:16px"><h3>Penalty Shootout</h3><p class="muted">Baada ya mechi kuamuliwa kwa penalty, chagua mchezaji, mpangilio na kama amefunga au amekosa.</p><select id="soMatch"><option value="">Chagua mechi iliyomalizika</option></select><select id="soTeam"><option value="">Timu</option></select><select id="soPlayer"><option value="">Mchezaji</option></select><input id="soOrder" type="number" min="1" max="20" placeholder="Namba ya mpigaji"><select id="soResult"><option value="scored">Amefunga</option><option value="missed">Amekosa</option></select><button type="button" class="btn" id="saveShootout">Hifadhi Penalty</button><div id="shootoutMsg"></div><div id="shootoutList"></div></div></form></div></div><section class="card" id="matchList"><h2>Mechi</h2><div class="list"></div></section>');
