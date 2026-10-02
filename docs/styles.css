@@ -327,3 +327,22 @@ input[type="file"]{padding:9px!important;background:#f8faf9!important}
 .detail-grid span{font-size:10px;color:var(--muted);margin-bottom:5px}
 .detail-grid strong{font-size:13px}
 @media(max-width:680px){.detail-grid{grid-template-columns:1fr}.team-hero{align-items:flex-start}}
+
+
+.team-logo-editor{margin-top:24px;padding-top:22px;border-top:1px solid var(--line)}
+.team-logo-editor h3{margin:0 0 5px;font-size:17px}
+.team-logo-editor .muted{margin:0;font-size:12px}
+.team-logo-editor-body{display:flex;align-items:center;gap:18px;margin-top:16px}
+.logo-preview.large{width:108px;height:108px;display:grid;place-items:center;flex:none}
+.logo-preview.large span{font-size:40px}
+.logo-upload-actions{display:grid;gap:7px;min-width:220px}
+.file-picker{display:inline-flex;align-items:center;justify-content:center;gap:7px;width:max-content;padding:11px 14px;border-radius:10px;background:#f2f5f4;color:var(--green);border:1px solid #dce8e3;font-size:12px;font-weight:800;cursor:pointer}
+.file-picker:hover{background:var(--green-soft)}
+.file-picker input{display:none}
+.logo-upload-actions .primary-button{margin:0;width:max-content}
+.logo-upload-actions .message{text-align:left;margin:0;min-height:18px}
+@media(max-width:680px){
+  .team-logo-editor-body{align-items:flex-start;flex-direction:column}
+  .logo-upload-actions{width:100%}
+  .file-picker,.logo-upload-actions .primary-button{width:100%}
+}
