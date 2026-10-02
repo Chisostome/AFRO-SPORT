@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="sw">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AFRO SPORT — Akaunti</title>
+<link rel="stylesheet" href="./styles.css?v=20261002-13">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" href="./assets/afro-sport-logo.jpg" type="image/jpeg">
+<meta name="theme-color" content="#0b0b0b">
+<style>
+.account-shell{min-height:100vh;display:grid;grid-template-columns:1fr 1fr;background:#f5f7f8}
+.account-brand{background:#0d5c45;color:#fff;padding:7vw;display:flex;flex-direction:column;justify-content:center}
+.account-brand img{width:150px;height:150px;object-fit:cover;border-radius:24px;background:#111;margin-bottom:28px}
+.account-brand h1{font-size:clamp(36px,5vw,62px);line-height:1;margin:0 0 16px}
+.account-brand p{max-width:520px;line-height:1.7;opacity:.82}
+.account-card{width:min(480px,88%);align-self:center;justify-self:center;background:#fff;border:1px solid #e5e9ec;border-radius:24px;padding:34px;box-shadow:0 18px 60px rgba(0,0,0,.08)}
+.account-tabs{display:grid;grid-template-columns:1fr 1fr;background:#f2f5f4;border-radius:12px;padding:4px;margin-bottom:24px}
+.account-tabs button{margin:0;border:0;background:transparent;color:#6b7680;padding:11px;border-radius:9px}
+.account-tabs button.active{background:#fff;color:#0d5c45;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.account-card h2{margin:0 0 7px;font-size:27px}
+.account-card .muted{margin:0 0 20px}
+.account-form{display:grid;gap:9px}
+.account-form label{margin-top:6px;font-size:12px}
+.account-form button[type=submit]{margin-top:12px}
+.account-message{min-height:22px;font-size:13px;margin-top:8px}
+.account-message.error{color:#b42318}.account-message.success{color:#176b4f}
+.account-links{display:flex;justify-content:space-between;gap:12px;margin-top:18px;font-size:12px}
+.account-links a{color:#0d5c45;text-decoration:none;font-weight:800}
+.account-note{margin-top:18px;padding-top:16px;border-top:1px solid #edf0f2;color:#6b7680;font-size:11px;line-height:1.6}
+@media(max-width:760px){.account-shell{grid-template-columns:1fr}.account-brand{padding:38px 26px}.account-brand img{width:95px;height:95px;margin-bottom:20px}.account-brand h1{font-size:40px}.account-card{margin:28px 0;padding:26px}}
+</style>
+</head>
+<body>
+<main class="account-shell">
+<section class="account-brand">
+<img src="./assets/afro-sport-logo.jpg" alt="AFRO SPORT">
+<p class="eyebrow">MICHEZO YA AFRO</p>
+<h1>Karibu AFRO SPORT.</h1>
+<p>Fungua akaunti yako kufuatilia timu, ligi na vipengele vya akaunti vitakavyokuja kwenye jukwaa.</p>
+</section>
+<section class="account-card">
+<div class="account-tabs">
+<button id="login-tab" class="active" type="button">Ingia</button>
+<button id="signup-tab" type="button">Jisajili</button>
+</div>
+
+<form id="login-form" class="account-form">
+<h2>Ingia kwenye akaunti</h2>
+<p class="muted">Tumia barua pepe na nenosiri lako.</p>
+<label for="login-email">Barua pepe</label>
+<input id="login-email" type="email" autocomplete="email" required>
+<label for="login-password">Nenosiri</label>
+<input id="login-password" type="password" autocomplete="current-password" required>
+<button id="login-button" type="submit">Ingia</button>
+<div id="login-message" class="account-message" aria-live="polite"></div>
+</form>
+
+<form id="signup-form" class="account-form" hidden>
+<h2>Fungua akaunti</h2>
+<p class="muted">Jisajili mwenyewe kama mtumiaji wa AFRO SPORT.</p>
+<label for="signup-name">Jina</label>
+<input id="signup-name" type="text" autocomplete="name" minlength="2" required>
+<label for="signup-email">Barua pepe</label>
+<input id="signup-email" type="email" autocomplete="email" required>
+<label for="signup-password">Nenosiri</label>
+<input id="signup-password" type="password" autocomplete="new-password" minlength="8" required>
+<label for="signup-password-confirm">Rudia nenosiri</label>
+<input id="signup-password-confirm" type="password" autocomplete="new-password" minlength="8" required>
+<button id="signup-button" type="submit">Jisajili</button>
+<div id="signup-message" class="account-message" aria-live="polite"></div>
+</form>
+
+<div class="account-links">
+<a href="./public.html">← Rudi AFRO SPORT</a>
+<a href="./admin.html">Admin</a>
+</div>
+<div class="account-note">Akaunti hii ni ya mtumiaji wa kawaida. Haiwezi kujipa nafasi ya Admin.</div>
+</section>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="./config.js"></script>
+<script>
+const {createClient}=window.supabase;
+const sb=createClient(window.AFRO_SUPABASE_URL,window.AFRO_SUPABASE_PUBLISHABLE_KEY);
+const loginTab=document.getElementById("login-tab"),signupTab=document.getElementById("signup-tab");
+const loginForm=document.getElementById("login-form"),signupForm=document.getElementById("signup-form");
+function tab(mode){const login=mode==="login";loginTab.classList.toggle("active",login);signupTab.classList.toggle("active",!login);loginForm.hidden=!login;signupForm.hidden=login}
+loginTab.onclick=()=>tab("login");signupTab.onclick=()=>tab("signup");
+function msg(el,text,type){el.textContent=text;el.className="account-message "+(type||"")}
+async function routeUser(user){
+  const {data:role}=await sb.from("user_roles").select("role").eq("user_id",user.id).maybeSingle();
+  if(role?.role==="super_admin"||role?.role==="admin"){
+    const {data:profile}=await sb.from("profiles").select("is_active").eq("user_id",user.id).maybeSingle();
+    if(profile?.is_active===false){await sb.auth.signOut();throw new Error("Akaunti imezuiwa.");}
+    location.href="./dashboard.html"; return;
+  }
+  location.href="./public.html";
+}
+loginForm.addEventListener("submit",async e=>{
+  e.preventDefault();const btn=document.getElementById("login-button"),m=document.getElementById("login-message");
+  msg(m,"");btn.disabled=true;btn.textContent="Inaingia...";
+  const {data,error}=await sb.auth.signInWithPassword({email:document.getElementById("login-email").value.trim(),password:document.getElementById("login-password").value});
+  if(error){msg(m,"Imeshindikana kuingia. Hakikisha taarifa zako ni sahihi.","error");btn.disabled=false;btn.textContent="Ingia";return}
+  try{await routeUser(data.user)}catch(err){msg(m,err.message||"Imeshindikana kuingia.","error");btn.disabled=false;btn.textContent="Ingia"}
+});
+signupForm.addEventListener("submit",async e=>{
+  e.preventDefault();const btn=document.getElementById("signup-button"),m=document.getElementById("signup-message");
+  msg(m,"");const name=document.getElementById("signup-name").value.trim(),email=document.getElementById("signup-email").value.trim(),p=document.getElementById("signup-password").value,p2=document.getElementById("signup-password-confirm").value;
+  if(p!==p2){msg(m,"Nenosiri mbili hazifanani.","error");return}
+  btn.disabled=true;btn.textContent="Inasajili...";
+  const redirectTo=new URL("./auth.html",location.href).href;
+  const {data,error}=await sb.auth.signUp({email,password:p,options:{data:{display_name:name},emailRedirectTo:redirectTo}});
+  if(error){msg(m,error.message.includes("already registered")?"Barua pepe hii tayari imesajiliwa.":"Imeshindikana kusajili akaunti.","error");btn.disabled=false;btn.textContent="Jisajili";return}
+  if(data.session){msg(m,"Akaunti imefunguliwa. Inaingia...","success");setTimeout(()=>routeUser(data.user),300)}
+  else{msg(m,"Akaunti imefunguliwa. Angalia barua pepe yako kuthibitisha akaunti, kisha ingia.","success");btn.disabled=false;btn.textContent="Jisajili"}
+});
+sb.auth.getSession().then(({data})=>{if(data.session&&!location.search.includes("confirmed")) routeUser(data.session.user).catch(()=>{})});
+</script>
+</body>
+</html>
