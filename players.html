@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="sw">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AFRO SPORT — Wachezaji</title>
+<link rel="stylesheet" href="./styles.css?v=20261002-6">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./assets/afro-sport-logo.jpg" type="image/jpeg">
+  <link rel="apple-touch-icon" href="./assets/afro-sport-logo.jpg">
+  <meta name="theme-color" content="#0b0b0b">
+</head>
+<body class="admin-body">
+<aside class="sidebar">
+  <div class="sidebar-brand"><img class="brand-logo sidebar-logo" src="./assets/afro-sport-logo.jpg" alt="AFRO SPORT"><div><strong>AFRO SPORT</strong><span>MICHEZO YA AFRO</span></div></div>
+  <nav class="admin-nav" aria-label="Menyu ya Admin">
+    <a href="./dashboard.html">⌂ <span>Dashibodi</span></a>
+    <a href="./leagues.html">🏆 <span>Ligi</span></a>
+    <a href="./teams.html">⚽ <span>Timu</span></a>
+    <a class="active" href="./players.html">👤 <span>Wachezaji</span></a>
+    <a href="./matches.html">📅 <span>Mechi</span></a>
+    <a href="./standings.html">📊 <span>Msimamo</span></a>
+    <a href="./scorers.html">🥇 <span>Wafungaji Bora</span></a>
+    <a href="./stats.html">📈 <span>Takwimu</span></a>
+  </nav>
+  <button class="logout-button" id="logout">Toka</button>
+</aside>
+
+<main class="admin-main">
+<header class="topbar">
+  <div><p class="eyebrow">USIMAMIZI</p><h1>Wachezaji</h1></div>
+  <div class="admin-user"><strong id="role-label">Inapakia...</strong><span id="user-email"></span></div>
+</header>
+
+<section class="page-intro">
+  <div><p class="eyebrow">WACHEZAJI</p><h2>Simamia wachezaji</h2><p>Ongeza mchezaji mara moja, kisha munganishe na timu na msimu anaoshiriki.</p></div>
+  <button class="primary-button" id="show-player-form">+ Ongeza Mchezaji</button>
+</section>
+
+<section class="player-layout">
+<article class="panel player-list-panel">
+  <div class="panel-head"><div><p class="eyebrow">ORODHA</p><h3>Wachezaji waliopo</h3></div><span class="count-badge" id="player-total">0</span></div>
+  <div id="player-list" class="player-list"><p class="empty-state">Inapakia wachezaji...</p></div>
+</article>
+
+<article class="panel form-panel" id="player-form-panel" hidden>
+  <div class="panel-head"><div><p class="eyebrow">MPYA</p><h3>Ongeza Mchezaji</h3></div></div>
+  <form id="player-form" class="admin-form">
+    <label for="first-name">Jina la kwanza</label><input id="first-name" required placeholder="Mfano: Mbwana">
+    <label for="last-name">Jina la mwisho</label><input id="last-name" required placeholder="Mfano: Samatta">
+    <label for="player-nationality">Utaifa <span class="optional">(hiari)</span></label><input id="player-nationality" placeholder="Mfano: Tanzania">
+    <label for="player-dob">Tarehe ya kuzaliwa <span class="optional">(hiari)</span></label><input id="player-dob" type="date">
+    <label for="player-position">Nafasi <span class="optional">(hiari)</span></label>
+    <select id="player-position">
+      <option value="">Chagua nafasi</option><option>Mlinda lango</option><option>Beki</option><option>Kati</option><option>Winga</option><option>Mshambuliaji</option>
+    </select>
+    <label for="player-photo-file">Picha ya mchezaji <span class="optional">(hiari)</span></label>
+    <input id="player-photo-file" type="file" accept="image/png,image/jpeg,image/webp,image/gif">
+    <p id="photo-file-hint" class="file-hint">PNG, JPG, WEBP au GIF — hadi 2 MB</p>
+    <div id="player-photo-preview" class="logo-preview" hidden></div>
+
+    <div class="assignment-box">
+      <p class="eyebrow">TIMU NA MSIMU</p>
+      <p class="muted">Unaweza kumunganisha mchezaji na timu na msimu sasa, au kufanya hivyo baadaye.</p>
+      <label for="player-team">Timu <span class="optional">(hiari)</span></label>
+      <select id="player-team"><option value="">Chagua timu</option></select>
+      <label for="player-season">Msimu <span class="optional">(hiari)</span></label>
+      <select id="player-season"><option value="">Chagua msimu</option></select>
+      <label for="squad-number">Namba ya jezi <span class="optional">(hiari)</span></label>
+      <input id="squad-number" type="number" min="0" max="99" placeholder="Mfano: 10">
+    </div>
+
+    <div class="form-actions"><button type="button" class="secondary-button" id="cancel-player">Ghairi</button><button type="submit" class="primary-button" id="save-player">Hifadhi Mchezaji</button></div>
+    <p id="player-message" class="message"></p>
+  </form>
+</article>
+</section>
+<p id="page-message" class="message page-message"></p>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="./config.js"></script>
+<script>
+const {createClient}=window.supabase;
+const sb=createClient(window.AFRO_SUPABASE_URL,window.AFRO_SUPABASE_PUBLISHABLE_KEY);
+const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
+const slugify=v=>v.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
+
+let teams=[];
+let seasons=[];
+
+async function requireAdmin(){
+  const {data:{user}}=await sb.auth.getUser();
+  if(!user){location.href="./index.html";return false;}
+  const {data:role}=await sb.from("user_roles").select("role").eq("user_id",user.id).maybeSingle();
+  if(!role||!["super_admin","admin"].includes(role.role)){await sb.auth.signOut();location.href="./index.html";return false;}
+  document.getElementById("role-label").textContent=role.role==="super_admin"?"Super Admin":"Admin";
+  document.getElementById("user-email").textContent=user.email||"";
+  return true;
+}
+
+function renderPlayers(rows){
+  const list=document.getElementById("player-list");
+  document.getElementById("player-total").textContent=rows.length;
+  if(!rows.length){list.innerHTML='<p class="empty-state">Hakuna mchezaji bado. Anza kwa “Ongeza Mchezaji”.</p>';return;}
+  list.innerHTML=rows.map(p=>{
+    const full=(p.first_name+" "+p.last_name).trim();
+    return '<a class="player-row" href="./player.html?id='+p.id+'">'+
+      '<div class="player-avatar">'+(p.photo_url?'<img src="'+esc(p.photo_url)+'" alt="">':'👤')+'</div>'+
+      '<div class="player-info"><strong>'+esc(full)+'</strong><small>'+esc(p.position||"Nafasi haijawekwa")+(p.nationality?" · "+esc(p.nationality):"")+'</small></div>'+
+      '<div class="player-meta"><span>'+esc(p.player_seasons?.length||0)+' ushiriki</span></div>'+
+    '</a>';
+  }).join("");
+}
+
+async function loadPlayers(){
+  const {data,error}=await sb.from("players").select("id,first_name,last_name,slug,photo_url,nationality,date_of_birth,position").order("first_name").order("last_name");
+  if(error){document.getElementById("player-list").innerHTML='<p class="empty-state error-state">Imeshindikana kupakia wachezaji.</p>';return;}
+  const ids=(data||[]).map(p=>p.id);
+  if(!ids.length){renderPlayers([]);return;}
+  const {data:assignments}=await sb.from("player_seasons").select("id,player_id,team_id,season_id,squad_number").in("player_id",ids);
+  const byPlayer={};(assignments||[]).forEach(a=>{(byPlayer[a.player_id]??=[]).push(a);});
+  (data||[]).forEach(p=>p.player_seasons=byPlayer[p.id]||[]);
+  renderPlayers(data||[]);
+}
+
+async function loadOptions(){
+  const [tr,sr]=await Promise.all([
+    sb.from("teams").select("id,name").order("name"),
+    sb.from("seasons").select("id,name,league_id,leagues(name)").order("name",{ascending:false})
+  ]);
+  if(!tr.error) teams=tr.data||[];
+  if(!sr.error) seasons=sr.data||[];
+  document.getElementById("player-team").innerHTML='<option value="">Chagua timu</option>'+teams.map(t=>'<option value="'+t.id+'">'+esc(t.name)+'</option>').join("");
+  document.getElementById("player-season").innerHTML='<option value="">Chagua msimu</option>'+seasons.map(s=>'<option value="'+s.id+'">'+esc(s.leagues?.name||"Ligi")+" — "+esc(s.name)+'</option>').join("");
+}
+
+const photoFile=document.getElementById("player-photo-file");
+photoFile.addEventListener("change",()=>{
+  const file=photoFile.files[0],hint=document.getElementById("photo-file-hint"),preview=document.getElementById("player-photo-preview");
+  if(!file){hint.textContent="PNG, JPG, WEBP au GIF — hadi 2 MB";preview.hidden=true;preview.innerHTML="";return;}
+  if(file.size>2*1024*1024){hint.textContent="Picha ni kubwa sana. Tumia picha isiyozidi 2 MB.";photoFile.value="";preview.hidden=true;return;}
+  hint.textContent=file.name+" · "+Math.round(file.size/1024)+" KB";
+  const url=URL.createObjectURL(file);preview.innerHTML='<img src="'+url+'" alt="Preview">';preview.hidden=false;
+});
+
+document.getElementById("show-player-form").onclick=()=>{document.getElementById("player-form-panel").hidden=false;document.getElementById("first-name").focus();};
+document.getElementById("cancel-player").onclick=()=>{document.getElementById("player-form-panel").hidden=true;document.getElementById("player-form").reset();document.getElementById("player-photo-preview").hidden=true;};
+document.getElementById("player-form").onsubmit=async e=>{
+  e.preventDefault();
+  const button=document.getElementById("save-player"),message=document.getElementById("player-message");
+  button.disabled=true;button.textContent="Inahifadhi...";message.textContent="";
+  const first=document.getElementById("first-name").value.trim(),last=document.getElementById("last-name").value.trim();
+  const baseSlug=slugify(first+"-"+last)||"mchezaji";
+  const file=photoFile.files[0];
+  let photoUrl=null;
+  if(file){
+    if(file.size>2*1024*1024){message.textContent="Picha imezidi 2 MB.";button.disabled=false;button.textContent="Hifadhi Mchezaji";return;}
+    const ext=(file.name.split(".").pop()||"jpg").toLowerCase().replace(/[^a-z0-9]/g,"")||"jpg";
+    const path="players/"+baseSlug+"-"+Date.now()+"."+ext;
+    const {error:uploadError}=await sb.storage.from("afro-sport-images").upload(path,file,{contentType:file.type||"image/jpeg",upsert:false});
+    if(uploadError){message.textContent="Picha haikupakiwa.";button.disabled=false;button.textContent="Hifadhi Mchezaji";return;}
+    const {data:publicData}=sb.storage.from("afro-sport-images").getPublicUrl(path);photoUrl=publicData.publicUrl;
+  }
+  const {data:player,error}=await sb.from("players").insert({
+    first_name:first,last_name:last,slug:baseSlug+"-"+Date.now().toString(36),
+    photo_url:photoUrl,nationality:document.getElementById("player-nationality").value.trim()||null,
+    date_of_birth:document.getElementById("player-dob").value||null,
+    position:document.getElementById("player-position").value||null
+  }).select("id").single();
+  if(error){message.textContent=error.code==="23505"?"Mchezaji mwenye taarifa hiyo tayari yupo.":"Imeshindikana kuhifadhi mchezaji.";button.disabled=false;button.textContent="Hifadhi Mchezaji";return;}
+  const teamId=document.getElementById("player-team").value,seasonId=document.getElementById("player-season").value;
+  if((teamId&&!seasonId)||(!teamId&&seasonId)){message.textContent="Chagua timu na msimu pamoja, au acha vyote wazi.";await sb.from("players").delete().eq("id",player.id);button.disabled=false;button.textContent="Hifadhi Mchezaji";return;}
+  if(teamId&&seasonId){
+    const squad=Number(document.getElementById("squad-number").value)||null;
+    const {error:assignmentError}=await sb.from("player_seasons").insert({player_id:player.id,team_id:teamId,season_id:seasonId,squad_number:squad});
+    if(assignmentError){message.textContent="Mchezaji ameundwa lakini ushiriki wa timu haukuhifadhiwa.";await loadPlayers();button.disabled=false;button.textContent="Hifadhi Mchezaji";return;}
+  }
+  document.getElementById("player-form").reset();document.getElementById("player-photo-preview").hidden=true;document.getElementById("photo-file-hint").textContent="PNG, JPG, WEBP au GIF — hadi 2 MB";document.getElementById("player-form-panel").hidden=true;
+  document.getElementById("page-message").textContent="Mchezaji amehifadhiwa.";
+  await loadPlayers();button.disabled=false;button.textContent="Hifadhi Mchezaji";
+};
+
+document.querySelectorAll("[data-coming]").forEach(l=>l.onclick=e=>{e.preventDefault();document.getElementById("page-message").textContent=l.dataset.coming+" itajengwa katika hatua inayofuata.";});
+document.getElementById("logout").onclick=async()=>{await sb.auth.signOut();location.href="./index.html";};
+
+(async()=>{try{if(await requireAdmin()){await loadPlayers();await loadOptions();}}catch(error){console.error(error);document.getElementById("player-list").innerHTML='<p class="empty-state error-state">Imeshindikana kupakia wachezaji. Fungua upya ukurasa.</p>';}})();
+</script>
+</body>
+</html>
