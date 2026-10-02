@@ -56,7 +56,17 @@ const {createClient}=window.supabase; const sb=createClient(window.AFRO_SUPABASE
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
 const slugify=v=>v.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
 function renderTeams(teams){const list=document.getElementById("team-list");document.getElementById("team-total").textContent=teams.length;if(!teams.length){list.innerHTML='<p class="empty-state">Hakuna timu bado. Anza kwa “Ongeza Timu”.</p>';return;}list.innerHTML=teams.map(t=>'<a class="team-row team-row-link" href="./team.html?id='+t.id+'"><span class="team-icon">'+(t.logo_url?'<img src="'+esc(t.logo_url)+'" alt="">':'⚽')+'</span><span class="team-info"><strong>'+esc(t.name)+'</strong><small>'+esc(t.short_name||"")+(t.country?" · "+esc(t.country):"")+'</small></span><span class="team-meta">'+(t.venue?esc(t.venue):"—")+'</span></div>').join("");}
-async function loadTeams(){const {data,error}=await sb.from("teams").select("id,name,slug,short_name,logo_url,country,founded_year,venue").order("name");if(error){document.getElementById("team-list").innerHTML='<p class="empty-state error-state">Imeshindikana kupakia timu.</p>';return;}renderTeams(data||[]);}
+async function deleteTeam(id,name){
+  if(!confirm("Una uhakika unataka kufuta timu "+name+"? Ikiwa ina mechi zilizopo, timu haitafutwa.")) return;
+  const {error}=await sb.from("teams").delete().eq("id",id);
+  if(error){document.getElementById("page-message").textContent="Timu haikufutwa. Inaweza kuwa bado imeunganishwa na mechi au matukio.";return;}
+  document.getElementById("page-message").textContent="Timu imefutwa.";
+  await loadTeams();
+}
+
+async function loadTeams(){const {data,error}=await sb.from("teams").select("id,name,slug,short_name,logo_url,country,founded_year,venue").order("name");if(error){document.getElementById("team-list").innerHTML='<p class="empty-state error-state">Imeshindikana kupakia timu.</p>';return;}renderTeams(data||[]);
+document.querySelectorAll(".list-delete-team").forEach(btn=>btn.onclick=e=>{e.preventDefault();e.stopPropagation();deleteTeam(btn.dataset.id,btn.dataset.name);});
+}
 const logoFile=document.getElementById("team-logo-file");
 logoFile.addEventListener("change",()=>{
   const file=logoFile.files[0];
