@@ -346,3 +346,5 @@ input[type="file"]{padding:9px!important;background:#f8faf9!important}
   .logo-upload-actions{width:100%}
   .file-picker,.logo-upload-actions .primary-button{width:100%}
 }
+
+.stage-team-panel{margin-top:20px}.stage-team-form{display:grid;grid-template-columns:1.2fr 1fr .7fr auto;gap:10px;align-items:end}.stage-team-list{margin-top:14px;display:grid;gap:8px}.stage-team-row{display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid var(--line);border-radius:12px;padding:11px;background:#fff}.stage-team-row strong,.stage-team-row small{display:block}.stage-team-row small{color:var(--muted);font-size:11px;margin-top:3px}.stage-team-remove{padding:7px 10px;font-size:10px}@media(max-width:680px){.stage-team-form{grid-template-columns:1fr}.stage-team-row{align-items:flex-start}.stage-team-remove{width:auto}}
