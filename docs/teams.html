@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="sw">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AFRO SPORT — Timu</title>
+<link rel="stylesheet" href="./styles.css?v=20261002-4">
+</head>
+<body class="admin-body">
+<aside class="sidebar">
+<div class="sidebar-brand"><div class="brand-mark">AS</div><div><strong>AFRO SPORT</strong><span>MICHEZO YA AFRO</span></div></div>
+<nav class="admin-nav" aria-label="Menyu ya Admin">
+<a href="./dashboard.html">⌂ <span>Dashibodi</span></a>
+<a href="./leagues.html">🏆 <span>Ligi</span></a>
+<a class="active" href="./teams.html">⚽ <span>Timu</span></a>
+<a href="#" data-coming="Wachezaji">👤 <span>Wachezaji</span></a>
+<a href="#" data-coming="Mechi">📅 <span>Mechi</span></a>
+<a href="#" data-coming="Msimamo">📊 <span>Msimamo</span></a>
+<a href="#" data-coming="Wafungaji Bora">🥇 <span>Wafungaji Bora</span></a>
+<a href="#" data-coming="Takwimu">📈 <span>Takwimu</span></a>
+</nav>
+<button class="logout-button" id="logout">Toka</button>
+</aside>
+<main class="admin-main">
+<header class="topbar"><div><p class="eyebrow">USIMAMIZI</p><h1>Timu</h1></div><div class="admin-user"><strong id="role-label">Inapakia...</strong><span id="user-email"></span></div></header>
+<section class="page-intro"><div><p class="eyebrow">TIMU</p><h2>Simamia timu</h2><p>Ongeza timu mara moja, kisha baadaye zipangie kwenye ligi, misimu na hatua mbalimbali.</p></div><button class="primary-button" id="show-team-form">+ Ongeza Timu</button></section>
+<section class="team-layout">
+<article class="panel team-list-panel"><div class="panel-head"><div><p class="eyebrow">ORODHA</p><h3>Timu zilizopo</h3></div><span class="count-badge" id="team-total">0</span></div><div id="team-list" class="team-list"><p class="empty-state">Inapakia timu...</p></div></article>
+<article class="panel form-panel" id="team-form-panel" hidden><div class="panel-head"><div><p class="eyebrow">MPYA</p><h3>Ongeza Timu</h3></div></div>
+<form id="team-form" class="admin-form">
+<label for="team-name">Jina la timu</label><input id="team-name" required placeholder="Mfano: Simba SC">
+<label for="team-short">Jina fupi <span class="optional">(hiari)</span></label><input id="team-short" placeholder="Mfano: Simba">
+<label for="team-country">Nchi <span class="optional">(hiari)</span></label><input id="team-country" placeholder="Mfano: Tanzania">
+<label for="team-logo">Logo URL <span class="optional">(hiari)</span></label><input id="team-logo" type="url" placeholder="https://...">
+<label for="team-venue">Uwanja <span class="optional">(hiari)</span></label><input id="team-venue" placeholder="Mfano: Benjamin Mkapa Stadium">
+<label for="team-founded">Mwaka wa kuanzishwa <span class="optional">(hiari)</span></label><input id="team-founded" type="number" min="1800" max="2100" placeholder="Mfano: 1936">
+<div class="form-actions"><button type="button" class="secondary-button" id="cancel-team">Ghairi</button><button type="submit" class="primary-button" id="save-team">Hifadhi Timu</button></div>
+<p id="team-message" class="message"></p>
+</form></article>
+</section>
+<p id="page-message" class="message page-message"></p>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="./config.js"></script>
+<script>
+const {createClient}=window.supabase; const sb=createClient(window.AFRO_SUPABASE_URL,window.AFRO_SUPABASE_PUBLISHABLE_KEY);
+const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
+const slugify=v=>v.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
+function renderTeams(teams){const list=document.getElementById("team-list");document.getElementById("team-total").textContent=teams.length;if(!teams.length){list.innerHTML='<p class="empty-state">Hakuna timu bado. Anza kwa “Ongeza Timu”.</p>';return;}list.innerHTML=teams.map(t=>'<div class="team-row"><span class="team-icon">'+(t.logo_url?'<img src="'+esc(t.logo_url)+'" alt="">':'⚽')+'</span><span class="team-info"><strong>'+esc(t.name)+'</strong><small>'+esc(t.short_name||"")+(t.country?" · "+esc(t.country):"")+'</small></span><span class="team-meta">'+(t.venue?esc(t.venue):"—")+'</span></div>').join("");}
+async function loadTeams(){const {data,error}=await sb.from("teams").select("id,name,slug,short_name,logo_url,country,founded_year,venue").order("name");if(error){document.getElementById("team-list").innerHTML='<p class="empty-state error-state">Imeshindikana kupakia timu.</p>';return;}renderTeams(data||[]);}
+document.getElementById("show-team-form").onclick=()=>{document.getElementById("team-form-panel").hidden=false;document.getElementById("team-name").focus();};
+document.getElementById("cancel-team").onclick=()=>{document.getElementById("team-form-panel").hidden=true;document.getElementById("team-form").reset();};
+document.getElementById("team-form").onsubmit=async e=>{e.preventDefault();const b=document.getElementById("save-team"),m=document.getElementById("team-message");b.disabled=true;b.textContent="Inahifadhi...";m.textContent="";const name=document.getElementById("team-name").value.trim();const payload={name,slug:slugify(name)+"-"+Date.now().toString(36),short_name:document.getElementById("team-short").value.trim()||null,country:document.getElementById("team-country").value.trim()||null,logo_url:document.getElementById("team-logo").value.trim()||null,venue:document.getElementById("team-venue").value.trim()||null,founded_year:Number(document.getElementById("team-founded").value)||null};const {error}=await sb.from("teams").insert(payload);if(error)m.textContent=error.code==="23505"?"Timu yenye taarifa hiyo tayari ipo.":"Imeshindikana kuhifadhi timu.";else{document.getElementById("team-form").reset();document.getElementById("team-form-panel").hidden=true;await loadTeams();document.getElementById("page-message").textContent="Timu imehifadhiwa.";}b.disabled=false;b.textContent="Hifadhi Timu";};
+document.querySelectorAll("[data-coming]").forEach(l=>l.onclick=e=>{e.preventDefault();document.getElementById("page-message").textContent=l.dataset.coming+" itajengwa katika hatua inayofuata.";});
+document.getElementById("logout").onclick=async()=>{await sb.auth.signOut();location.href="./index.html";};
+(async()=>{const {data:{user}}=await sb.auth.getUser();if(!user){location.href="./index.html";return;}const {data:role}=await sb.from("user_roles").select("role").eq("user_id",user.id).maybeSingle();if(!role||!["super_admin","admin"].includes(role.role)){await sb.auth.signOut();location.href="./index.html";return;}document.getElementById("role-label").textContent=role.role==="super_admin"?"Super Admin":"Admin";document.getElementById("user-email").textContent=user.email||"";await loadTeams();})();
+</script>
+</body></html>
