@@ -131,14 +131,16 @@ async function matches(){
 
 async function match(id){
  clearMatchRealtime();
- const [r,e,l]=await Promise.all([
+ const [r,e,l,s]=await Promise.all([
   db.from("matches").select("*,home_team:teams!matches_home_team_id_fkey(name),away_team:teams!matches_away_team_id_fkey(name),leagues(name),competition_stages(name)").eq("id",id).single(),
   db.from("match_events").select("*,players:player_id(name,full_name,photo_url),teams:team_id(name)").eq("match_id",id).order("minute").order("added_time"),
-  db.from("match_lineups").select("*,team:teams!match_lineups_team_id_fkey(name),match_lineup_players(*,player:players!match_lineup_players_player_id_fkey(name,full_name,photo_url))").eq("match_id",id)
+  db.from("match_lineups").select("*,team:teams!match_lineups_team_id_fkey(name),match_lineup_players(*,player:players!match_lineup_players_player_id_fkey(name,full_name,photo_url))").eq("match_id",id),
+  db.from("match_team_statistics").select("*").eq("match_id",id)
  ]);
  if(r.error)return shell("Mechi",errBox(r.error));
- const x=r.data, events=e.data||[], lineups=l.data||[];
+ const x=r.data, events=e.data||[], lineups=l.data||[], matchStats=s.data||[];
  const shootoutSection=(x,items)=>{if(!items.length)return "";const list=team=>items.filter(z=>z.team_id===team).map(z=>'<div class="row"><span><b>'+esc(z.shootout_order)+'. '+esc(z.players?.full_name||z.players?.name||"Mchezaji")+'</b></span><strong class="penalty-result '+(z.shootout_result==="scored"?"penalty-scored":"penalty-missed")+'">'+(z.shootout_result==="scored"?"⚽ Amefunga":"✕ Amekosa")+'</strong></div>').join("")||'<div class="empty">Hakuna.</div>';return '<section class="card"><h2>Penalty Shootout</h2><div class="penalty-teams"><div class="penalty-team"><h3>'+esc(x.home_team?.name||"Nyumbani")+'</h3>'+list(x.home_team_id)+'</div><div class="penalty-team"><h3>'+esc(x.away_team?.name||"Ugenini")+'</h3>'+list(x.away_team_id)+'</div></div></section>'};
+ const statsSection=()=>{const h=matchStats.find(z=>z.team_id===x.home_team_id)||{},a=matchStats.find(z=>z.team_id===x.away_team_id)||{};const rows=[["Possession","%","possession"],["Shots","","shots"],["Shots on target","","shots_on_target"],["Corners","","corners"],["Fouls","","fouls"],["Offsides","","offsides"],["Yellow cards","","yellow_cards"],["Red cards","","red_cards"]];return '<section class="card match-stats-card"><div class="section-title"><div><span class="tag">TAKWIMU</span><h2>Takwimu za Mechi</h2></div></div><div class="match-stats-head"><b>'+esc(x.home_team?.name||"Nyumbani")+'</b><span>VS</span><b>'+esc(x.away_team?.name||"Ugenini")+'</b></div>'+rows.map(r=>'<div class="match-stat-row"><strong>'+r[0]+'</strong><span>'+esc(String(h[r[2]]??0))+r[1]+'</span><div class="stat-bar"><i style="width:'+Math.min(100,Number(h[r[2]]||0))+'%"></i></div><span>'+esc(String(a[r[2]]??0))+r[1]+'</span></div>').join("")+'</section>'};
  const render=()=>{
   const normalEvents=events.filter(z=>!z.is_penalty_shootout);
   const shootoutEvents=events.filter(z=>z.is_penalty_shootout).sort((a,b)=>(a.shootout_order||0)-(b.shootout_order||0));
