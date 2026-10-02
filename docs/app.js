@@ -74,7 +74,7 @@ async function stageDetail(compId,stageId){
   db.from("stage_standings").select("*").eq("stage_id",stageId).order("group_id").order("position")
  ]);
  if(s.error)return shell("Stage",errBox(s.error));
- const blocks=(g.data||[]).map(gr=>{const rows=(st.data||[]).filter(x=>x.group_id===gr.id);return '<section class="card"><h2>'+esc(gr.name)+'</h2><div class="list">'+(rows.map(x=>'<a class="row" href="#/teams/'+x.team_id+'"><span><b>'+x.position+'. '+esc(x.team_name)+'</b><small>'+x.played+'P · '+x.wins+'W '+x.draws+'D '+x.losses+'L · GD '+x.goal_difference+'</small></span><strong>'+x.points+' pts</strong></a>').join("")||'<div class="empty">Hakuna results bado.</div>')+'</div></section>'}).join("");
+ const blocks=(g.data||[]).map(gr=>{const rows=(st.data||[]).filter(x=>x.group_id===gr.id);return '<section class="card"><h2>'+esc(gr.name)+'</h2><div class="list">'+(rows.map(x=>'<a class="row" href="#/teams/'+x.team_id+'"><span><b>'+x.position+'. '+esc(x.team_name)+'</b><small>'+x.played+' MP · '+x.wins+'W '+x.draws+'D '+x.losses+'L · GD '+x.goal_difference+'</small></span><strong>'+x.points+' pts</strong></a>').join("")||'<div class="empty">Hakuna results bado.</div>')+'</div></section>'}).join("");
  shell(esc(s.data.name),'<div class="detail"><section class="card"><div class="tag">'+esc(s.data.stage_type)+'</div><h2>Stage '+s.data.stage_order+'</h2><p>Legs: '+(s.data.leg_count||1)+'</p></section><div class="cards">'+(blocks||'<div class="empty">Hakuna groups katika stage hii.</div>')+'</div></div>');
 }
 
