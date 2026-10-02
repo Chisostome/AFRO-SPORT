@@ -101,11 +101,11 @@ function renderPlayers(rows){
   if(!rows.length){list.innerHTML='<p class="empty-state">Hakuna mchezaji bado. Anza kwa “Ongeza Mchezaji”.</p>';return;}
   list.innerHTML=rows.map(p=>{
     const full=(p.first_name+" "+p.last_name).trim();
-    return '<div class="player-row">'+
+    return '<a class="player-row" href="./player.html?id='+p.id+'">
       '<div class="player-avatar">'+(p.photo_url?'<img src="'+esc(p.photo_url)+'" alt="">':'👤')+'</div>'+
       '<div class="player-info"><strong>'+esc(full)+'</strong><small>'+esc(p.position||"Nafasi haijawekwa")+(p.nationality?" · "+esc(p.nationality):"")+'</small></div>'+
       '<div class="player-meta"><span>'+esc(p.player_seasons?.length||0)+' ushiriki</span></div>'+
-    '</div>';
+    '</a>';
   }).join("");
 }
 
