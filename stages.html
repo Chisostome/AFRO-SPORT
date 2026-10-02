@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="sw">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AFRO SPORT — Hatua za Mashindano</title>
+  <link rel="stylesheet" href="./styles.css?v=20261002-4">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./assets/afro-sport-logo.jpg" type="image/jpeg">
+  <link rel="apple-touch-icon" href="./assets/afro-sport-logo.jpg">
+  <meta name="theme-color" content="#0b0b0b">
+</head>
+<body class="admin-body">
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <img class="brand-logo sidebar-logo" src="./assets/afro-sport-logo.jpg" alt="AFRO SPORT">
+      <div><strong>AFRO SPORT</strong><span>MICHEZO YA AFRO</span></div>
+    </div>
+    <nav class="admin-nav" aria-label="Menyu ya Admin">
+      <a href="./dashboard.html">⌂ <span>Dashibodi</span></a>
+      <a class="active" href="./leagues.html">🏆 <span>Ligi</span></a>
+      <a href="#" data-coming="Timu">⚽ <span>Timu</span></a>
+      <a href="./players.html">👤 <span>Wachezaji</span></a>
+      <a href="./matches.html">📅 <span>Mechi</span></a>
+      <a href="./standings.html">📊 <span>Msimamo</span></a>
+      <a href="./scorers.html">🥇 <span>Wafungaji Bora</span></a>
+      <a href="./stats.html">📈 <span>Takwimu</span></a>
+    </nav>
+    <button class="logout-button" id="logout">Toka</button>
+  </aside>
+
+  <main class="admin-main">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">MASHINDANO</p>
+        <h1>Hatua za Mashindano</h1>
+      </div>
+      <div class="admin-user">
+        <strong id="role-label">Inapakia...</strong>
+        <span id="user-email"></span>
+      </div>
+    </header>
+
+    <section class="page-intro">
+      <div>
+        <p class="eyebrow">HATUA</p>
+        <h2 id="season-title">Inapakia msimu...</h2>
+        <p>Unda hatua kwa mpangilio wa mashindano, chagua aina ya hatua na idadi ya legs.</p>
+      </div>
+      <a class="secondary-button" href="./leagues.html">← Rudi Ligi</a>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <div><p class="eyebrow">MSIMU</p><h3 id="season-meta">Inapakia...</h3></div>
+        <button class="primary-button" id="show-stage-form">+ Ongeza Hatua</button>
+      </div>
+
+      <form id="stage-form" class="admin-form" hidden>
+        <div class="form-grid">
+          <div>
+            <label for="stage-name">Jina la hatua</label>
+            <input id="stage-name" required placeholder="Mfano: Ligi Kuu">
+          </div>
+          <div>
+            <label for="stage-type">Aina ya hatua</label>
+            <select id="stage-type" required>
+              <option value="league">Ligi</option>
+              <option value="group_stage">Hatua ya Makundi</option>
+              <option value="qualifier">Kufuzu</option>
+              <option value="playoff">Playoff</option>
+              <option value="best_loser">Best Loser</option>
+              <option value="round_of_16">Mtoano — 16 Bora</option>
+              <option value="quarter_final">Robo Fainali</option>
+              <option value="semi_final">Nusu Fainali</option>
+              <option value="third_place">Mchezo wa Nafasi ya Tatu</option>
+              <option value="knockout">Mtoano</option>
+              <option value="final">Fainali</option>
+            </select>
+          </div>
+          <div>
+            <label for="stage-order">Mpangilio</label>
+            <input id="stage-order" type="number" min="1" value="1" required>
+          </div>
+          <div>
+            <label for="stage-legs">Legs</label>
+            <select id="stage-legs">
+              <option value="1">Leg 1 — Mechi moja</option>
+              <option value="2">Leg 2 — Mechi mbili</option>
+            </select>
+          </div>
+        </div>
+
+        <label for="advancement-rule">Sheria ya kuendelea <span class="optional">(hiari)</span></label>
+        <textarea id="advancement-rule" rows="3" placeholder="Mfano: Timu 2 bora zinaendelea hadi hatua inayofuata."></textarea>
+
+        <label class="check-row">
+          <input id="stage-current" type="checkbox">
+          <span>Hatua hii iwe ya sasa</span>
+        </label>
+
+        <div class="form-actions">
+          <button type="button" class="secondary-button" id="cancel-stage">Ghairi</button>
+          <button type="submit" class="primary-button" id="save-stage">Hifadhi Hatua</button>
+        </div>
+        <p id="stage-message" class="message"></p>
+      </form>
+
+      <div id="stage-list" class="season-list">
+        <p class="empty-state">Inapakia hatua...</p>
+      </div>
+    </section>
+
+    <section class="panel stage-team-panel" id="stage-team-panel" hidden>
+      <div class="panel-head"><div><p class="eyebrow">TIMU</p><h3 id="selected-stage-title">Timu za Hatua</h3></div></div>
+      <form id="stage-team-form" class="stage-team-form">
+        <div><label for="stage-team">Timu</label><select id="stage-team" required><option value="">Chagua timu</option></select></div>
+        <div><label for="stage-group">Kundi <span class="optional">(hiari)</span></label><select id="stage-group"><option value="">Hakuna kundi</option></select></div>
+        <div><label for="stage-seed">Seed <span class="optional">(hiari)</span></label><input id="stage-seed" type="number" min="1" placeholder="1"></div>
+        <button class="primary-button" type="submit">+ Ongeza Timu</button>
+      </form>
+      <div id="stage-team-list" class="stage-team-list"><p class="empty-state">Inapakia timu...</p></div>
+      <p id="stage-team-message" class="message"></p>
+    </section>
+
+    <p id="page-message" class="message page-message"></p>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./config.js"></script>
+  <script>
+    const { createClient } = window.supabase;
+    const sb = createClient(window.AFRO_SUPABASE_URL, window.AFRO_SUPABASE_PUBLISHABLE_KEY);
+
+    const typeLabels = {
+      league:"Ligi", group_stage:"Hatua ya Makundi", qualifier:"Kufuzu", playoff:"Playoff",
+      best_loser:"Best Loser", round_of_16:"Mtoano — 16 Bora", quarter_final:"Robo Fainali",
+      semi_final:"Nusu Fainali", third_place:"Nafasi ya Tatu", knockout:"Mtoano", final:"Fainali"
+    };
+
+    const params = new URLSearchParams(window.location.search);
+    const seasonId = params.get("season");
+    const selectedStageId = params.get("stage");
+
+    const escapeHtml = (value) => String(value ?? "")
+      .replace(/[&<>"']/g, (char) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;" }[char]));
+
+    let season = null;
+
+    async function requireAdmin() {
+      const { data: { user } } = await sb.auth.getUser();
+      if (!user) { window.location.href = "./index.html"; return false; }
+      const { data: role } = await sb.from("user_roles").select("role").eq("user_id", user.id).maybeSingle();
+      if (!role || !["super_admin","admin"].includes(role.role)) {
+        await sb.auth.signOut();
+        window.location.href = "./index.html";
+        return false;
+      }
+      document.getElementById("role-label").textContent = role.role === "super_admin" ? "Super Admin" : "Admin";
+      document.getElementById("user-email").textContent = user.email || "";
+      return true;
+    }
+
+    async function loadSeason() {
+      if (!seasonId) {
+        document.getElementById("season-title").textContent = "Msimu haujachaguliwa";
+        document.getElementById("season-meta").textContent = "Rudi Ligi na uchague msimu.";
+        document.getElementById("show-stage-form").disabled = true;
+        return false;
+      }
+
+      const { data, error } = await sb.from("seasons")
+        .select("id,name,start_date,end_date,is_current,leagues(name)")
+        .eq("id", seasonId)
+        .maybeSingle();
+
+      if (error || !data) {
+        document.getElementById("season-title").textContent = "Msimu haujapatikana";
+        document.getElementById("season-meta").textContent = "Hakikisha kiungo cha msimu ni sahihi.";
+        document.getElementById("show-stage-form").disabled = true;
+        return false;
+      }
+
+      season = data;
+      document.getElementById("season-title").textContent = data.leagues?.name || "Mashindano";
+      document.getElementById("season-meta").textContent =
+        data.name + " · " + (data.start_date || "—") + " → " + (data.end_date || "—");
+      return true;
+    }
+
+    async function loadStages() {
+      const list = document.getElementById("stage-list");
+      list.innerHTML = '<p class="empty-state">Inapakia hatua...</p>';
+
+      const { data, error } = await sb.from("competition_stages")
+        .select("id,name,stage_type,stage_order,legs,qualification_mode,advancement_rule,is_current")
+        .eq("season_id", seasonId)
+        .order("stage_order")
+        .order("created_at");
+
+      if (error) {
+        list.innerHTML = '<p class="empty-state error-state">Imeshindikana kupakia hatua.</p>';
+        return;
+      }
+
+      if (!data?.length) {
+        list.innerHTML = '<p class="empty-state">Hakuna hatua bado. Anza kwa “Ongeza Hatua”.</p>';
+        return;
+      }
+
+      list.innerHTML = data.map((stage) => `
+        <div class="season-row">
+          <div>
+            <strong>${escapeHtml(stage.stage_order)}. ${escapeHtml(stage.name)}</strong>
+            <small>${escapeHtml(typeLabels[stage.stage_type] || stage.stage_type)} · ${stage.legs === 2 ? "Leg 2" : "Leg 1"}${stage.advancement_rule ? " · " + escapeHtml(stage.advancement_rule) : ""}</small>
+          </div>
+          <div class="season-actions"><a class="secondary-button season-open" href="./stages.html?season=${encodeURIComponent(seasonId)}&stage=${encodeURIComponent(stage.id)}">Timu</a><span class="season-badge ${stage.is_current ? "current" : ""}">${stage.is_current ? "Sasa" : "Imewekwa"}</span></div>
+        </div>
+      `).join("");
+    }
+
+    async function loadSelectedStageTeams() {
+      if (!selectedStageId) return;
+      document.getElementById("stage-team-panel").hidden=false;
+      const [{data:stage,error:stageError},{data:teams,error:teamError},{data:groups,error:groupError}]=await Promise.all([
+        sb.from("competition_stages").select("id,name,stage_type").eq("id",selectedStageId).maybeSingle(),
+        sb.from("teams").select("id,name,short_name").order("name"),
+        sb.from("stage_groups").select("id,name,group_order").eq("stage_id",selectedStageId).order("group_order")
+      ]);
+      if(stageError||!stage){document.getElementById("selected-stage-title").textContent="Hatua haipatikani";return;}
+      document.getElementById("selected-stage-title").textContent="Timu za "+stage.name;
+      document.getElementById("stage-team").innerHTML='<option value="">Chagua timu</option>'+(teams||[]).map(t=>'<option value="'+t.id+'">'+escapeHtml(t.name)+(t.short_name?' ('+escapeHtml(t.short_name)+')':'')+'</option>').join("");
+      document.getElementById("stage-group").innerHTML='<option value="">Hakuna kundi</option>'+((groups||[]).map(g=>'<option value="'+g.id+'">'+escapeHtml(g.name)+'</option>').join(""));
+      await loadStageTeamList();
+    }
+    async function loadStageTeamList(){
+      const list=document.getElementById("stage-team-list");
+      const {data,error}=await sb.from("stage_teams").select("id,team_id,group_id,seed,teams(name,short_name),stage_groups(name)").eq("stage_id",selectedStageId).order("created_at");
+      if(error){list.innerHTML='<p class="empty-state error-state">Imeshindikana kupakia timu za hatua.</p>';return;}
+      if(!data?.length){list.innerHTML='<p class="empty-state">Hakuna timu iliyowekwa kwenye hatua hii.</p>';return;}
+      list.innerHTML=data.map(e=>'<div class="stage-team-row"><div><strong>'+escapeHtml(e.teams?.name||"Timu")+'</strong><small>'+(e.stage_groups?.name?escapeHtml(e.stage_groups.name)+" · ":"")+(e.seed?"Seed "+escapeHtml(e.seed):"Seed —")+'</small></div><button type="button" class="secondary-button danger-button stage-team-remove" data-entry="'+e.id+'">Ondoa</button></div>').join("");
+      list.querySelectorAll("[data-entry]").forEach(btn=>btn.addEventListener("click",async()=>{if(!confirm("Ondoa timu hii kwenye hatua?"))return;const {error}=await sb.from("stage_teams").delete().eq("id",btn.dataset.entry);if(error){document.getElementById("stage-team-message").textContent="Imeshindikana kuondoa timu.";return;}await loadStageTeamList();document.getElementById("stage-team-message").textContent="Timu imeondolewa."; }));
+    }
+    document.getElementById("stage-team-form").addEventListener("submit",async(e)=>{
+      e.preventDefault();const msg=document.getElementById("stage-team-message");const button=e.submitter;button.disabled=true;msg.textContent="";
+      const {error}=await sb.from("stage_teams").insert({stage_id:selectedStageId,team_id:document.getElementById("stage-team").value,group_id:document.getElementById("stage-group").value||null,seed:document.getElementById("stage-seed").value?Number(document.getElementById("stage-seed").value):null});
+      button.disabled=false;if(error){msg.textContent=error.code==="23505"?"Timu hii tayari ipo kwenye hatua.":"Imeshindikana kuongeza timu.";return;}
+      e.target.reset();msg.textContent="Timu imeongezwa kwenye hatua.";await loadStageTeamList();
+    });
+
+    document.getElementById("show-stage-form").addEventListener("click", () => {
+      const form = document.getElementById("stage-form");
+      form.hidden = false;
+      const type = document.getElementById("stage-type").value;
+      document.getElementById("stage-legs").value = type === "league" ? "2" : "1";
+      document.getElementById("stage-name").focus();
+    });
+
+    document.getElementById("stage-type").addEventListener("change", (event) => {
+      if (!document.getElementById("stage-form").hidden) {
+        document.getElementById("stage-legs").value = event.target.value === "league" ? "2" : "1";
+      }
+    });
+
+    document.getElementById("cancel-stage").addEventListener("click", () => {
+      document.getElementById("stage-form").hidden = true;
+      document.getElementById("stage-form").reset();
+      document.getElementById("stage-order").value = "1";
+    });
+
+    document.getElementById("stage-form").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const button = document.getElementById("save-stage");
+      const message = document.getElementById("stage-message");
+      button.disabled = true;
+      button.textContent = "Inahifadhi...";
+      message.textContent = "";
+
+      const isCurrent = document.getElementById("stage-current").checked;
+      if (isCurrent) {
+        const { error: clearError } = await sb.from("competition_stages")
+          .update({ is_current:false })
+          .eq("season_id", seasonId);
+        if (clearError) {
+          message.textContent = "Imeshindikana kuweka hatua ya sasa.";
+          button.disabled = false;
+          button.textContent = "Hifadhi Hatua";
+          return;
+        }
+      }
+
+      const { error } = await sb.from("competition_stages").insert({
+        season_id: seasonId,
+        name: document.getElementById("stage-name").value.trim(),
+        stage_type: document.getElementById("stage-type").value,
+        stage_order: Number(document.getElementById("stage-order").value),
+        legs: Number(document.getElementById("stage-legs").value),
+        advancement_rule: document.getElementById("advancement-rule").value.trim() || null,
+        is_current: isCurrent
+      });
+
+      button.disabled = false;
+      button.textContent = "Hifadhi Hatua";
+
+      if (error) {
+        message.textContent = error.code === "23505"
+          ? "Hatua yenye jina hilo tayari ipo kwenye msimu huu."
+          : "Imeshindikana kuhifadhi hatua.";
+        return;
+      }
+
+      document.getElementById("stage-form").hidden = true;
+      document.getElementById("stage-form").reset();
+      document.getElementById("stage-order").value = "1";
+      document.getElementById("page-message").textContent = "Hatua imehifadhiwa.";
+      await loadStages();
+    });
+
+    document.querySelectorAll("[data-coming]").forEach((link) => {
+      link.addEventListener("click", (event) => {
+        event.preventDefault();
+        document.getElementById("page-message").textContent = link.dataset.coming + " itajengwa katika hatua inayofuata.";
+      });
+    });
+
+    document.getElementById("logout").addEventListener("click", async () => {
+      await sb.auth.signOut();
+      window.location.href = "./index.html";
+    });
+
+    (async () => {
+      if (!(await requireAdmin())) return;
+      if (await loadSeason()) { await loadStages(); await loadSelectedStageTeams(); }
+    })();
+  </script>
+</body>
+</html>
