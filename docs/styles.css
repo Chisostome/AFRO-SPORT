@@ -305,3 +305,9 @@ button:disabled{opacity:.65;cursor:not-allowed}
 .team-meta{max-width:180px;color:var(--muted);font-size:10px;text-align:right}
 @media(max-width:1000px){.team-layout{grid-template-columns:1fr}}
 @media(max-width:680px){.team-meta{display:none}}
+
+
+.file-hint{margin:-3px 0 4px;color:var(--muted);font-size:11px}
+.logo-preview{width:84px;height:84px;border:1px solid var(--line);border-radius:12px;background:#f7f9f8;padding:6px;overflow:hidden}
+.logo-preview img{width:100%;height:100%;object-fit:contain;border-radius:8px}
+input[type="file"]{padding:9px!important;background:#f8faf9!important}
