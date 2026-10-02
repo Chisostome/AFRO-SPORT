@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="sw">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AFRO SPORT — Mechi</title>
+<link rel="stylesheet" href="./styles.css?v=20261002-8">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./assets/afro-sport-logo.jpg" type="image/jpeg">
+  <link rel="apple-touch-icon" href="./assets/afro-sport-logo.jpg">
+  <meta name="theme-color" content="#0b0b0b">
+</head>
+<body class="admin-body">
+<aside class="sidebar">
+  <div class="sidebar-brand"><img class="brand-logo sidebar-logo" src="./assets/afro-sport-logo.jpg" alt="AFRO SPORT"><div><strong>AFRO SPORT</strong><span>MICHEZO YA AFRO</span></div></div>
+  <nav class="admin-nav" aria-label="Menyu ya Admin">
+    <a href="./dashboard.html">⌂ <span>Dashibodi</span></a>
+    <a href="./leagues.html">🏆 <span>Ligi</span></a>
+    <a href="./teams.html">⚽ <span>Timu</span></a>
+    <a href="./players.html">👤 <span>Wachezaji</span></a>
+    <a class="active" href="./matches.html">📅 <span>Mechi</span></a>
+    <a href="#" data-coming="Msimamo">📊 <span>Msimamo</span></a>
+    <a href="#" data-coming="Wafungaji Bora">🥇 <span>Wafungaji Bora</span></a>
+    <a href="#" data-coming="Takwimu">📈 <span>Takwimu</span></a>
+  </nav>
+  <button class="logout-button" id="logout">Toka</button>
+</aside>
+
+<main class="admin-main">
+<header class="topbar">
+  <div><p class="eyebrow">MECHI</p><h1 id="page-title">Inapakia...</h1></div>
+  <div class="admin-user"><strong id="role-label">Inapakia...</strong><span id="user-email"></span></div>
+</header>
+
+<p><a class="team-back" href="./matches.html">← Rudi kwenye Mechi</a></p>
+
+<section class="panel" id="match-card">
+  <p class="empty-state">Inapakia taarifa za mechi...</p>
+</section>
+
+<section class="panel" id="event-form-panel">
+  <div class="panel-head"><div><p class="eyebrow">MATUKIO</p><h3>Ongeza Tukio la Mechi</h3></div></div>
+  <form id="event-form" class="admin-form">
+    <label for="event-team">Timu</label>
+    <select id="event-team" required><option value="">Chagua timu</option></select>
+
+    <label for="event-player">Mchezaji <span class="optional">(hiari kwa baadhi ya matukio)</span></label>
+    <select id="event-player"><option value="">Chagua mchezaji</option></select>
+
+    <label for="event-type">Aina ya tukio</label>
+    <select id="event-type" required>
+      <option value="">Chagua tukio</option>
+      <option value="goal">Goli</option>
+      <option value="own_goal">Goli la kujifunga</option>
+      <option value="assist">Assist</option>
+      <option value="penalty_goal">Goli la penalti</option>
+      <option value="penalty_missed">Penalti imekosa</option>
+      <option value="yellow_card">Kadi ya njano</option>
+      <option value="second_yellow">Kadi ya pili ya njano</option>
+      <option value="red_card">Kadi nyekundu</option>
+      <option value="substitution_on">Anaingia</option>
+      <option value="substitution_off">Anatoka</option>
+    </select>
+
+    <label for="event-minute">Dakika</label>
+    <input id="event-minute" type="number" min="0" max="200" placeholder="Mfano: 67">
+
+    <label for="event-added">Dakika za nyongeza <span class="optional">(hiari)</span></label>
+    <input id="event-added" type="number" min="0" max="30" placeholder="Mfano: 4">
+
+    <label for="event-details">Maelezo <span class="optional">(hiari)</span></label>
+    <input id="event-details" placeholder="Mfano: kichwa, mguu wa kulia...">
+
+    <div class="form-actions">
+      <button class="primary-button" id="save-event">Hifadhi Tukio</button>
+    </div>
+    <p id="event-message" class="message"></p>
+  </form>
+</section>
+
+<section class="panel">
+  <div class="panel-head"><div><p class="eyebrow">HISTORIA</p><h3>Matukio ya Mechi</h3></div><span class="count-badge" id="event-total">0</span></div>
+  <div id="event-list"><p class="empty-state">Hakuna matukio bado.</p></div>
+</section>
+
+<p id="page-message" class="message page-message"></p>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="./config.js"></script>
+<script>
+const {createClient}=window.supabase;
+const sb=createClient(window.AFRO_SUPABASE_URL,window.AFRO_SUPABASE_PUBLISHABLE_KEY);
+const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
+const params=new URLSearchParams(location.search);
+const matchId=params.get("id");
+let match=null, players=[];
+
+const eventLabels={
+  goal:"Goli",own_goal:"Goli la kujifunga",assist:"Assist",penalty_goal:"Goli la penalti",
+  penalty_missed:"Penalti imekosa",yellow_card:"Kadi ya njano",second_yellow:"Kadi ya pili ya njano",
+  red_card:"Kadi nyekundu",substitution_on:"Anaingia",substitution_off:"Anatoka"
+};
+
+async function requireAdmin(){
+  const {data:{user}}=await sb.auth.getUser();
+  if(!user){location.href="./index.html";return false;}
+  const {data:role}=await sb.from("user_roles").select("role").eq("user_id",user.id).maybeSingle();
+  if(!role||!["super_admin","admin"].includes(role.role)){await sb.auth.signOut();location.href="./index.html";return false;}
+  document.getElementById("role-label").textContent=role.role==="super_admin"?"Super Admin":"Admin";
+  document.getElementById("user-email").textContent=user.email||"";
+  return true;
+}
+
+async function loadMatch(){
+  if(!matchId){document.getElementById("match-card").innerHTML='<p class="empty-state error-state">Mechi haijapatikana.</p>';return false;}
+  const {data,error}=await sb.from("matches")
+    .select("id,kickoff_at,venue,round_name,leg,status,home_score,away_score,stage_id,home_team_id,away_team_id,home_team:teams!matches_home_team_id_fkey(id,name),away_team:teams!matches_away_team_id_fkey(id,name),competition_stages!inner(id,name,stage_type,seasons!inner(id,name,leagues!inner(name)))")
+    .eq("id",matchId).maybeSingle();
+  if(error||!data){document.getElementById("match-card").innerHTML='<p class="empty-state error-state">Imeshindikana kupakia mechi.</p>';return false;}
+  match=data;
+  const title=(match.home_team?.name||"Timu")+" dhidi ya "+(match.away_team?.name||"Timu");
+  document.getElementById("page-title").textContent=title;
+  const when=match.kickoff_at?new Date(match.kickoff_at).toLocaleString("sw-TZ",{dateStyle:"full",timeStyle:"short"}):"Muda haujawekwa";
+  const score=match.status==="completed"&&match.home_score!==null?match.home_score+" - "+match.away_score:"vs";
+  document.getElementById("match-card").innerHTML='<div class="team-detail-card"><div class="team-hero"><div><p class="eyebrow">'+esc(match.competition_stages?.seasons?.leagues?.name||"Ligi")+'</p><h2>'+esc(match.home_team?.name||"Timu")+' <span>'+esc(score)+'</span> '+esc(match.away_team?.name||"Timu")+'</h2><p>'+esc(match.competition_stages?.seasons?.name||"")+' · '+esc(match.competition_stages?.name||"")+' · Leg '+esc(match.leg)+'</p></div></div><div class="detail-grid"><div><strong>Tarehe na muda</strong><span>'+esc(when)+'</span></div><div><strong>Uwanja</strong><span>'+esc(match.venue||"Haijawekwa")+'</span></div><div><strong>Raundi</strong><span>'+esc(match.round_name||"Haijawekwa")+'</span></div><div><strong>Hali</strong><span>'+esc(match.status)+'</span></div></div></div>';
+  await loadPlayers();
+  await loadEvents();
+  return true;
+}
+
+async function loadPlayers(){
+  const {data,error}=await sb.from("player_seasons")
+    .select("player_id,team_id,players!inner(id,first_name,last_name),team:teams!inner(id,name)")
+    .eq("season_id",match.competition_stages.seasons.id);
+  if(error){players=[];return;}
+  players=(data||[]).filter(x=>x.team_id===match.home_team_id||x.team_id===match.away_team_id);
+  loadPlayerOptions();
+}
+
+function loadPlayerOptions(){
+  const teamId=document.getElementById("event-team").value;
+  const select=document.getElementById("event-player");
+  const filtered=players.filter(x=>x.team_id===teamId);
+  select.innerHTML='<option value="">Chagua mchezaji</option>'+filtered.map(x=>'<option value="'+x.player_id+'">'+esc((x.players?.first_name||"")+" "+(x.players?.last_name||""))+'</option>').join("");
+}
+
+async function loadEvents(){
+  const {data,error}=await sb.from("match_events")
+    .select("id,team_id,player_id,event_type,minute,added_minute,details,created_at,team:teams!match_events_team_id_fkey(name),player:players!match_events_player_id_fkey(first_name,last_name)")
+    .eq("match_id",matchId)
+    .order("minute",{ascending:true,nullsFirst:false})
+    .order("created_at",{ascending:true});
+  if(error){document.getElementById("event-list").innerHTML='<p class="empty-state error-state">Imeshindikana kupakia matukio.</p>';return;}
+  document.getElementById("event-total").textContent=(data||[]).length;
+  if(!data?.length){document.getElementById("event-list").innerHTML='<p class="empty-state">Hakuna matukio bado.</p>';return;}
+  document.getElementById("event-list").innerHTML=data.map(e=>{
+    const min=e.minute===null?"":e.minute+(e.added_minute? "+"+e.added_minute:"")+"′";
+    const player=e.player?(e.player.first_name+" "+e.player.last_name):"";
+    return '<div class="stage-team-row"><div><strong>'+esc(eventLabels[e.event_type]||e.event_type)+'</strong><small>'+esc(min)+(player?" · "+esc(player):"")+(e.team?.name?" · "+esc(e.team.name):"")+(e.details?" · "+esc(e.details):"")+'</small></div><span class="count-badge">'+esc(e.event_type)+'</span></div>';
+  }).join("");
+}
+
+document.getElementById("event-team").addEventListener("change",loadPlayerOptions);
+document.getElementById("event-form").onsubmit=async e=>{
+  e.preventDefault();
+  if(!match)return;
+  const button=document.getElementById("save-event"),message=document.getElementById("event-message");
+  const teamId=document.getElementById("event-team").value;
+  const playerId=document.getElementById("event-player").value||null;
+  const type=document.getElementById("event-type").value;
+  if(!teamId||!type){message.textContent="Chagua timu na aina ya tukio.";return;}
+  button.disabled=true;button.textContent="Inahifadhi...";message.textContent="";
+  const minute=document.getElementById("event-minute").value;
+  const added=document.getElementById("event-added").value;
+  const {error}=await sb.from("match_events").insert({
+    match_id:matchId,team_id:teamId,player_id:playerId,event_type:type,
+    minute:minute===""?null:Number(minute),added_minute:added===""?null:Number(added),
+    details:document.getElementById("event-details").value.trim()||null
+  });
+  button.disabled=false;button.textContent="Hifadhi Tukio";
+  if(error){message.textContent="Imeshindikana kuhifadhi tukio.";return;}
+  document.getElementById("event-form").reset();
+  loadPlayerOptions();
+  message.textContent="Tukio limehifadhiwa.";
+  await loadEvents();
+};
+
+document.getElementById("logout").onclick=async()=>{await sb.auth.signOut();location.href="./index.html";};
+document.querySelectorAll("[data-coming]").forEach(l=>l.onclick=e=>{e.preventDefault();document.getElementById("page-message").textContent=l.dataset.coming+" itajengwa katika hatua inayofuata.";});
+
+(async()=>{try{if(await requireAdmin())await loadMatch();}catch(error){console.error(error);document.getElementById("match-card").innerHTML='<p class="empty-state error-state">Imeshindikana kupakia taarifa za mechi.</p>';}})();
+</script>
+</body>
+</html>
