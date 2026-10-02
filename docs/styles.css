@@ -46,3 +46,49 @@
 .penalty-scored{color:#4ade80}
 .penalty-missed{color:#f87171}
 @media(max-width:700px){.penalty-teams{grid-template-columns:1fr}}
+
+/* Match lineup pitch */
+.lineup-edit-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.lineup-editor{min-width:0}
+.lineup-editor-head{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.lineup-editor-head .team-logo{width:48px;height:48px}
+.lineup-form label{display:grid;gap:7px}
+.lineup-form select[multiple]{min-height:210px}
+.lineup-visual{overflow:hidden}
+.lineup-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.pitch-wrap{display:flex;justify-content:center}
+.pitch{position:relative;width:min(100%,760px);aspect-ratio:0.68;background:linear-gradient(180deg,#126b42,#0d5d39);border:3px solid rgba(255,255,255,.78);border-radius:16px;overflow:hidden;box-shadow:0 20px 45px rgba(0,0,0,.28)}
+.pitch:before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(180deg,rgba(255,255,255,.035) 0 8%,transparent 8% 16%);pointer-events:none}
+.pitch-lines{position:absolute;inset:0}
+.pitch-lines>div{position:absolute}
+.pitch-center-circle{width:20%;aspect-ratio:1;border:2px solid rgba(255,255,255,.75);border-radius:50%;left:40%;top:40%}
+.pitch-center-dot{width:8px;height:8px;border-radius:50%;background:#fff;left:calc(50% - 4px);top:calc(50% - 4px)}
+.pitch-half{left:0;right:0;top:50%;border-top:2px solid rgba(255,255,255,.75)}
+.pitch-box{left:25%;width:50%;height:15%;border:2px solid rgba(255,255,255,.72)}
+.pitch-box-top{top:0;border-top:0}
+.pitch-box-bottom{bottom:0;border-bottom:0}
+.pitch-goal{left:39%;width:22%;height:3%;border:2px solid rgba(255,255,255,.72)}
+.pitch-goal-top{top:-1px;border-top:0}
+.pitch-goal-bottom{bottom:-1px;border-bottom:0}
+.pitch-player{position:absolute;transform:translate(-50%,-50%);width:92px;text-align:center;z-index:3;pointer-events:none}
+.pitch-player-photo{width:52px;height:52px;margin:0 auto 4px;border:3px solid rgba(255,255,255,.92);border-radius:50%;overflow:hidden;background:#10251d;display:flex;align-items:center;justify-content:center;box-shadow:0 5px 12px rgba(0,0,0,.3)}
+.pitch-player-photo img{width:100%;height:100%;object-fit:cover}
+.pitch-player b{display:block;font-size:.72rem;line-height:1.1;text-shadow:0 1px 3px #000;white-space:normal}
+.pitch-player small{display:block;font-size:.62rem;opacity:.82;text-transform:capitalize}
+.pitch-team-label{position:absolute;z-index:2;left:12px;right:12px;display:flex;justify-content:space-between;font-weight:800;font-size:.78rem;text-shadow:0 1px 3px #000}
+.pitch-team-label span{opacity:.8}
+.pitch-away-label{top:10px}
+.pitch-home-label{bottom:10px}
+.bench-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:18px}
+.bench-panel{border:1px solid var(--border,#24352f);border-radius:14px;padding:15px;background:rgba(255,255,255,.02)}
+.bench-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}
+.bench-head h3{margin:2px 0 0}
+.formation-badge{border:1px solid var(--border,#24352f);border-radius:999px;padding:6px 10px;font-size:.78rem}
+.bench-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.bench-card{display:flex;align-items:center;gap:9px;padding:8px;border:1px solid var(--border,#24352f);border-radius:11px}
+.bench-card img,.bench-photo{width:36px;height:36px;min-width:36px;border-radius:50%;object-fit:cover;background:#14231e;display:flex;align-items:center;justify-content:center}
+.bench-card span{min-width:0}
+.bench-card b,.bench-card small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bench-card b{font-size:.78rem}.bench-card small{font-size:.68rem;opacity:.65}
+@media(max-width:800px){.lineup-edit-grid,.bench-grid{grid-template-columns:1fr}.pitch{width:min(100%,560px)}.pitch-player{width:78px}.pitch-player-photo{width:44px;height:44px}.pitch-player b{font-size:.64rem}.bench-list{grid-template-columns:1fr 1fr}}
+@media(max-width:520px){.pitch{border-radius:10px}.pitch-player{width:62px}.pitch-player-photo{width:36px;height:36px;border-width:2px}.pitch-player b{font-size:.56rem}.pitch-player small{font-size:.5rem}.pitch-team-label{font-size:.65rem}.bench-list{grid-template-columns:1fr}.lineup-form select[multiple]{min-height:180px}}
