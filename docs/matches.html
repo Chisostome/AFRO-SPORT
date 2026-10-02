@@ -141,7 +141,7 @@ function renderMatches(rows){
   list.innerHTML=rows.map(m=>{
     const when=m.kickoff_at?new Date(m.kickoff_at).toLocaleString("sw-TZ",{dateStyle:"medium",timeStyle:"short"}):"Muda haujawekwa";
     const score=m.status==="completed"&&m.home_score!==null&&m.away_score!==null?m.home_score+" - "+m.away_score:"vs";
-    return '<div class="stage-team-row"><div><strong>'+esc(m.home_team?.name||"Timu")+" "+score+" "+esc(m.away_team?.name||"Timu")+'</strong><small>'+esc(m.competition_stages?.seasons?.leagues?.name||"Ligi")+" · "+esc(m.competition_stages?.name||"Hatua")+" · "+esc(when)+(m.round_name?" · "+esc(m.round_name):"")+" · Leg "+esc(m.leg)+'</small></div><div class="match-row-actions"><span class="count-badge">'+esc(m.status)+'</span>'+(m.status!=="completed"&&m.status!=="cancelled"?'<button class="secondary-button result-button" data-id="'+m.id+'">Ingiza Matokeo</button>':"")+'</div></div>';
+    return '<div class="stage-team-row"><div><strong>'+esc(m.home_team?.name||"Timu")+" "+score+" "+esc(m.away_team?.name||"Timu")+'</strong><small>'+esc(m.competition_stages?.seasons?.leagues?.name||"Ligi")+" · "+esc(m.competition_stages?.name||"Hatua")+" · "+esc(when)+(m.round_name?" · "+esc(m.round_name):"")+" · Leg "+esc(m.leg)+'</small></div><div class="match-row-actions"><span class="count-badge">'+esc(m.status)+'</span>'+<a class="secondary-button" href="./match.html?id='+m.id+'">Fungua</a>+(m.status!=="completed"&&m.status!=="cancelled"?'<button class="secondary-button result-button" data-id="'+m.id+'">Ingiza Matokeo</button>':"")+'</div></div>';
   }).join("");
 }
 
