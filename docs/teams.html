@@ -31,7 +31,12 @@
 <label for="team-name">Jina la timu</label><input id="team-name" required placeholder="Mfano: Simba SC">
 <label for="team-short">Jina fupi <span class="optional">(hiari)</span></label><input id="team-short" placeholder="Mfano: Simba">
 <label for="team-country">Nchi <span class="optional">(hiari)</span></label><input id="team-country" placeholder="Mfano: Tanzania">
-<label for="team-logo">Logo URL <span class="optional">(hiari)</span></label><input id="team-logo" type="url" placeholder="https://...">
+<label for="team-logo-file">Logo ya timu</label>
+<input id="team-logo-file" type="file" accept="image/*">
+<p id="logo-file-name" class="file-hint">Chagua picha kutoka kwenye simu au kompyuta.</p>
+<div id="logo-preview" class="logo-preview" hidden></div>
+<label for="team-logo">Logo URL <span class="optional">(hiari — kama hutaki kupakia picha)</span></label>
+<input id="team-logo" type="url" placeholder="https://...">
 <label for="team-venue">Uwanja <span class="optional">(hiari)</span></label><input id="team-venue" placeholder="Mfano: Benjamin Mkapa Stadium">
 <label for="team-founded">Mwaka wa kuanzishwa <span class="optional">(hiari)</span></label><input id="team-founded" type="number" min="1800" max="2100" placeholder="Mfano: 1936">
 <div class="form-actions"><button type="button" class="secondary-button" id="cancel-team">Ghairi</button><button type="submit" class="primary-button" id="save-team">Hifadhi Timu</button></div>
@@ -48,9 +53,36 @@ const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&
 const slugify=v=>v.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
 function renderTeams(teams){const list=document.getElementById("team-list");document.getElementById("team-total").textContent=teams.length;if(!teams.length){list.innerHTML='<p class="empty-state">Hakuna timu bado. Anza kwa “Ongeza Timu”.</p>';return;}list.innerHTML=teams.map(t=>'<div class="team-row"><span class="team-icon">'+(t.logo_url?'<img src="'+esc(t.logo_url)+'" alt="">':'⚽')+'</span><span class="team-info"><strong>'+esc(t.name)+'</strong><small>'+esc(t.short_name||"")+(t.country?" · "+esc(t.country):"")+'</small></span><span class="team-meta">'+(t.venue?esc(t.venue):"—")+'</span></div>').join("");}
 async function loadTeams(){const {data,error}=await sb.from("teams").select("id,name,slug,short_name,logo_url,country,founded_year,venue").order("name");if(error){document.getElementById("team-list").innerHTML='<p class="empty-state error-state">Imeshindikana kupakia timu.</p>';return;}renderTeams(data||[]);}
+const logoFile=document.getElementById("team-logo-file");
+logoFile.addEventListener("change",()=>{
+  const file=logoFile.files[0];
+  const name=document.getElementById("logo-file-name");
+  const preview=document.getElementById("logo-preview");
+  if(!file){name.textContent="Chagua picha kutoka kwenye simu au kompyuta.";preview.hidden=true;preview.innerHTML="";return;}
+  name.textContent=file.name+" · "+Math.round(file.size/1024)+" KB";
+  if(file.size>2*1024*1024){name.textContent="Picha ni kubwa sana. Tumia picha isiyozidi 2 MB.";logoFile.value="";preview.hidden=true;return;}
+  const url=URL.createObjectURL(file);
+  preview.innerHTML='<img src="'+url+'" alt="Muonekano wa logo">';
+  preview.hidden=false;
+});
 document.getElementById("show-team-form").onclick=()=>{document.getElementById("team-form-panel").hidden=false;document.getElementById("team-name").focus();};
 document.getElementById("cancel-team").onclick=()=>{document.getElementById("team-form-panel").hidden=true;document.getElementById("team-form").reset();};
-document.getElementById("team-form").onsubmit=async e=>{e.preventDefault();const b=document.getElementById("save-team"),m=document.getElementById("team-message");b.disabled=true;b.textContent="Inahifadhi...";m.textContent="";const name=document.getElementById("team-name").value.trim();const payload={name,slug:slugify(name)+"-"+Date.now().toString(36),short_name:document.getElementById("team-short").value.trim()||null,country:document.getElementById("team-country").value.trim()||null,logo_url:document.getElementById("team-logo").value.trim()||null,venue:document.getElementById("team-venue").value.trim()||null,founded_year:Number(document.getElementById("team-founded").value)||null};const {error}=await sb.from("teams").insert(payload);if(error)m.textContent=error.code==="23505"?"Timu yenye taarifa hiyo tayari ipo.":"Imeshindikana kuhifadhi timu.";else{document.getElementById("team-form").reset();document.getElementById("team-form-panel").hidden=true;await loadTeams();document.getElementById("page-message").textContent="Timu imehifadhiwa.";}b.disabled=false;b.textContent="Hifadhi Timu";};
+document.getElementById("team-form").onsubmit=async e=>{e.preventDefault();const b=document.getElementById("save-team"),m=document.getElementById("team-message");b.disabled=true;b.textContent="Inahifadhi...";m.textContent="";const name=document.getElementById("team-name").value.trim();const payload={name,slug:slugify(name)+"-"+Date.now().toString(36),short_name:document.getElementById("team-short").value.trim()||null,country:document.getElementById("team-country").value.trim()||null,logo_url:document.getElementById("team-logo").value.trim()||null,venue:document.getElementById("team-venue").value.trim()||null,founded_year:Number(document.getElementById("team-founded").value)||null};let logoUrl=document.getElementById("team-logo").value.trim()||null;
+const file=logoFile.files[0];
+if(file){
+  if(file.size>2*1024*1024){m.textContent="Picha ni kubwa sana. Tumia picha isiyozidi 2 MB.";b.disabled=false;b.textContent="Hifadhi Timu";return;}
+  const ext=(file.name.split(".").pop()||"jpg").toLowerCase().replace(/[^a-z0-9]/g,"")||"jpg";
+  const path="teams/"+Date.now()+"-"+slugify(name)+"."+ext;
+  const {error:uploadError}=await sb.storage.from("afro-sport-images").upload(path,file,{cacheControl:"3600",upsert:false});
+  if(uploadError){m.textContent="Imeshindikana kupakia logo.";b.disabled=false;b.textContent="Hifadhi Timu";return;}
+  const {data:publicData}=sb.storage.from("afro-sport-images").getPublicUrl(path);
+  logoUrl=publicData.publicUrl;
+}
+const finalPayload={...payload,logo_url:logoUrl};
+const {error}=await sb.from("teams").insert(finalPayload);
+if(error)m.textContent=error.code==="23505"?"Timu yenye taarifa hiyo tayari ipo.":"Imeshindikana kuhifadhi timu.";
+else{document.getElementById("team-form").reset();document.getElementById("logo-file-name").textContent="Chagua picha kutoka kwenye simu au kompyuta.";document.getElementById("logo-preview").hidden=true;document.getElementById("logo-preview").innerHTML="";document.getElementById("team-form-panel").hidden=true;await loadTeams();document.getElementById("page-message").textContent="Timu na logo vimehifadhiwa.";}
+b.disabled=false;b.textContent="Hifadhi Timu";};
 document.querySelectorAll("[data-coming]").forEach(l=>l.onclick=e=>{e.preventDefault();document.getElementById("page-message").textContent=l.dataset.coming+" itajengwa katika hatua inayofuata.";});
 document.getElementById("logout").onclick=async()=>{await sb.auth.signOut();location.href="./index.html";};
 (async()=>{const {data:{user}}=await sb.auth.getUser();if(!user){location.href="./index.html";return;}const {data:role}=await sb.from("user_roles").select("role").eq("user_id",user.id).maybeSingle();if(!role||!["super_admin","admin"].includes(role.role)){await sb.auth.signOut();location.href="./index.html";return;}document.getElementById("role-label").textContent=role.role==="super_admin"?"Super Admin":"Admin";document.getElementById("user-email").textContent=user.email||"";await loadTeams();})();
