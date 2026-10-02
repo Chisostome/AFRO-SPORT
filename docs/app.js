@@ -169,14 +169,69 @@ async function adminLive(id){
 }
 async function adminLineup(id){
  const {data:{session}}=await db.auth.getSession(); if(!session)return admin();
- const m=await db.from("matches").select("id,home_team_id,away_team_id,home_team:teams!matches_home_team_id_fkey(name),away_team:teams!matches_away_team_id_fkey(name)").eq("id",id).single();
+ const m=await db.from("matches").select("id,league_id,season_id,home_team_id,away_team_id,home_team:teams!matches_home_team_id_fkey(name,logo_url),away_team:teams!matches_away_team_id_fkey(name,logo_url)").eq("id",id).single();
  if(m.error)return shell("Lineup",errBox(m.error));
- const ps=(await db.from("players").select("id,name,team_id,position,jersey_number").in("team_id",[m.data.home_team_id,m.data.away_team_id]).order("jersey_number")).data||[];
- const options=ps.map(p=>'<option value="'+p.id+'">'+esc(p.name)+' #'+esc(p.jersey_number||"")+'</option>').join("");
- shell("Lineups",'<div class="cards"><div class="card"><h2>'+esc(m.data.home_team?.name)+'</h2><form id="lh" class="form"><select id="hCaptain"><option value="">Captain</option>'+ps.filter(p=>p.team_id===m.data.home_team_id).map(p=>'<option value="'+p.id+'">'+esc(p.name)+'</option>').join("")+'</select><select id="hPlayers" multiple size="12">'+ps.filter(p=>p.team_id===m.data.home_team_id).map(p=>'<option value="'+p.id+'">'+esc(p.name)+' · '+esc(p.position||"")+'</option>').join("")+'</select><input id="hFormation" value="4-3-3"><button class="btn">Save Home Lineup</button><div id="hm"></div></form></div><div class="card"><h2>'+esc(m.data.away_team?.name)+'</h2><form id="la" class="form"><select id="aCaptain"><option value="">Captain</option>'+ps.filter(p=>p.team_id===m.data.away_team_id).map(p=>'<option value="'+p.id+'">'+esc(p.name)+'</option>').join("")+'</select><select id="aPlayers" multiple size="12">'+ps.filter(p=>p.team_id===m.data.away_team_id).map(p=>'<option value="'+p.id+'">'+esc(p.name)+' · '+esc(p.position||"")+'</option>').join("")+'</select><input id="aFormation" value="4-3-3"><button class="btn">Save Away Lineup</button><div id="am"></div></form></div></div>');
- const save=(form,team,playersSel,cap,formation,msg)=>form.onsubmit=async e=>{e.preventDefault();const arr=[...playersSel.selectedOptions].map((o,i)=>({player_id:o.value,starter:i<11,sort_order:i,position:null,position_x:null,position_y:null}));const x=await db.rpc("save_match_lineup",{p_match_id:id,p_team_id:team,p_formation:formation.value,p_captain_player_id:cap.value||null,p_players:arr});msg.textContent=x.error?x.error.message:"Lineup imehifadhiwa."};
- save(lh,m.data.home_team_id,hPlayers,hCaptain,hFormation,hm); save(la,m.data.away_team_id,aPlayers,aCaptain,aFormation,am);
+ const [pr,existing]=await Promise.all([
+  db.from("player_seasons").select("player_id,team_id,position,jersey_number,players(name,full_name,photo_url)").eq("league_id",m.data.league_id).eq("season_id",m.data.season_id).in("team_id",[m.data.home_team_id,m.data.away_team_id]).order("jersey_number"),
+  db.from("match_lineups").select("id,team_id,formation,captain_player_id,match_lineup_players(player_id,starter,position,position_x,position_y,sort_order,players(name,full_name,photo_url,jersey_number))").eq("match_id",id)
+ ]);
+ if(pr.error)return shell("Lineup",errBox(pr.error));
+ const players=pr.data||[], saved=existing.data||[];
+ const teamPlayers=team=>players.filter(p=>p.team_id===team);
+ const savedFor=team=>saved.find(x=>x.team_id===team);
+ const formationOptions=["4-3-3","4-2-3-1","4-4-2","4-1-4-1","3-4-3","3-5-2","5-3-2"].map(v=>'<option value="'+v+'">'+v+'</option>').join("");
+ const playerOption=p=>'<option value="'+p.player_id+'">'+esc(p.players?.full_name||p.players?.name||"")+' · #'+esc(p.jersey_number??p.players?.jersey_number??"")+'</option>';
+ const setupTeam=(team,side)=>{
+  const list=teamPlayers(team), old=savedFor(team), starters=(old?.match_lineup_players||[]).filter(x=>x.starter).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0)), bench=(old?.match_lineup_players||[]).filter(x=>!x.starter).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0));
+  return '<section class="card lineup-editor"><div class="lineup-editor-head">'+(team===m.data.home_team_id?(m.data.home_team?.logo_url?'<img class="team-logo" src="'+esc(m.data.home_team.logo_url)+'" alt="">':''):(m.data.away_team?.logo_url?'<img class="team-logo" src="'+esc(m.data.away_team.logo_url)+'" alt="">':''))+'<div><div class="tag">'+(side==="home"?"HOME":"AWAY")+'</div><h2>'+esc(team===m.data.home_team_id?m.data.home_team?.name:m.data.away_team?.name)+'</h2></div></div><form id="lineup-'+side+'" class="form lineup-form" data-team="'+team+'" data-side="'+side+'"><label>Formation<select class="lineup-formation">'+formationOptions+'</select></label><label>Wachezaji 11 wa kuanza<select class="lineup-starters" multiple size="13">'+list.map(playerOption).join("")+'</select></label><small class="muted">Chagua wachezaji 11 tu. Mpangilio wa majina unaweza kubadilishwa kwa kuzingatia nafasi zao.</small><label>Wachezaji wa Akiba<select class="lineup-bench" multiple size="8">'+list.map(playerOption).join("")+'</select></label><label>Captain<select class="lineup-captain"><option value="">Chagua Captain</option>'+list.map(playerOption).join("")+'</select></label><button class="btn">Hifadhi Lineup</button><div class="lineup-msg"></div></form></section>';
+ };
+ shell("Lineup · "+esc(m.data.home_team?.name)+" vs "+esc(m.data.away_team?.name),'<div class="detail"><section class="card"><div class="tag">MPANGILIO WA MCHEZO</div><h2>Wachezaji 11 + Akiba</h2><p class="muted">Chagua formation, wachezaji 11 wa kuanza, Captain na benchi. Mfumo utaweka wachezaji kwenye uwanja moja kwa moja.</p></section><div class="cards lineup-edit-grid">'+setupTeam(m.data.home_team_id,"home")+setupTeam(m.data.away_team_id,"away")+'</div></div>');
+ document.querySelectorAll(".lineup-form").forEach(form=>{
+  const team=form.dataset.team, side=form.dataset.side, old=savedFor(team), starters=form.querySelector(".lineup-starters"), bench=form.querySelector(".lineup-bench"), captain=form.querySelector(".lineup-captain"), formation=form.querySelector(".lineup-formation"), msg=form.querySelector(".lineup-msg");
+  if(old?.formation)formation.value=old.formation;
+  const oldPlayers=old?.match_lineup_players||[];
+  [...starters.options].forEach(o=>o.selected=oldPlayers.some(x=>x.player_id===o.value&&x.starter));
+  [...bench.options].forEach(o=>o.selected=oldPlayers.some(x=>x.player_id===o.value&&!x.starter));
+  captain.value=old?.captain_player_id||"";
+  const syncSelections=()=>{
+   const starterIds=new Set([...starters.selectedOptions].map(o=>o.value));
+   [...bench.options].forEach(o=>{o.disabled=starterIds.has(o.value);if(o.disabled)o.selected=false});
+   [...starters.options].forEach(o=>{o.disabled=[...bench.selectedOptions].some(b=>b.value===o.value)});
+  };
+  starters.onchange=syncSelections;bench.onchange=syncSelections;syncSelections();
+  form.onsubmit=async e=>{
+   e.preventDefault();
+   const starterIds=[...starters.selectedOptions].map(o=>o.value), benchIds=[...bench.selectedOptions].map(o=>o.value);
+   if(starterIds.length!==11){msg.textContent="Lazima uchague wachezaji 11 wa kuanza.";return}
+   const overlap=starterIds.some(x=>benchIds.includes(x));if(overlap){msg.textContent="Mchezaji hawezi kuwa starter na akiba kwa wakati mmoja.";return}
+   if(captain.value&&!starterIds.includes(captain.value)){msg.textContent="Captain lazima awe kwenye 11 wa kuanza.";return}
+   const all=[...starterIds,...benchIds];
+   const g=formation.value.split("-").map(Number);
+   const defCount=g[0]||4, midCounts=g.slice(1,-1), attCount=g[g.length-1]||3;
+   const slots=[{position:"goalkeeper",x:50,y:92}];
+   const line=(count,y,pos)=>{if(!count)return;for(let i=0;i<count;i++)slots.push({position:pos,x:((i+1)*100/(count+1)),y})};
+   line(defCount,70,"defender"); line(midCounts.reduce((a,b)=>a+b,0),48,"midfielder"); line(attCount,25,"striker");
+   const ordered=starterIds.map((pid,i)=>({pid,i}));
+   const used=new Set(); const items=[];
+   const takeByPos=(pos,count)=>{
+    const picked=ordered.filter(x=>!used.has(x.pid)&&players.find(p=>p.player_id===x.pid)?.position===pos).slice(0,count);
+    picked.forEach(x=>used.add(x.pid));return picked;
+   };
+   let cursor=0;
+   const gk=takeByPos("goalkeeper",1);gk.forEach(x=>items.push({pid:x.pid,slot:slots[0]}));
+   const groups=[["defender",defCount],["midfielder",midCounts.reduce((a,b)=>a+b,0)],["striker",attCount]];
+   let slotStart=1;
+   groups.forEach(([pos,count])=>{let picked=takeByPos(pos,count);while(picked.length<count){const x=ordered.find(z=>!used.has(z.pid));if(!x)break;used.add(x.pid);picked.push(x)}picked.forEach((x,j)=>items.push({pid:x.pid,slot:slots[slotStart+j]}));slotStart+=count});
+   const byId=new Map(items.map(x=>[x.pid,x]));
+   const payload=all.map((pid,i)=>{const isStarter=starterIds.includes(pid), x=byId.get(pid);let px=null,py=null,position=null;if(isStarter&&x){px=side==="away"?100-x.slot.x:x.slot.x;py=side==="away"?100-x.slot.y:x.slot.y;position=x.slot.position}return {player_id:pid,starter:isStarter,position,position_x:px,position_y:py,sort_order:isStarter?starterIds.indexOf(pid):100+benchIds.indexOf(pid)}});
+   msg.textContent="Inahifadhi...";
+   const r=await db.rpc("save_match_lineup",{p_match_id:id,p_team_id:team,p_formation:formation.value,p_captain_player_id:captain.value||null,p_players:payload});
+   msg.textContent=r.error?r.error.message:"Lineup imehifadhiwa. Uwanja wa mechi umesasishwa.";
+   if(!r.error)setTimeout(()=>adminLineup(id),500);
+  };
+ });
 }
+
 async function adminMatches(){
  const {data:{session}}=await db.auth.getSession(); if(!session)return admin();
  const leagues=(await db.from("leagues").select("id,name").order("name")).data||[];
