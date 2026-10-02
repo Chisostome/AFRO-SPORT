@@ -52,7 +52,18 @@
 <label for="login-password">Nenosiri</label>
 <input id="login-password" type="password" autocomplete="current-password" required>
 <button id="login-button" type="submit">Ingia</button>
+<button id="forgot-password-link" type="button" class="secondary-button">Umesahau nenosiri?</button>
 <div id="login-message" class="account-message" aria-live="polite"></div>
+</form>
+
+<form id="forgot-form" class="account-form" hidden>
+<h2>Weka upya nenosiri</h2>
+<p class="muted">Ingiza barua pepe yako. Tutakutumia kiungo cha kuweka nenosiri jipya.</p>
+<label for="forgot-email">Barua pepe</label>
+<input id="forgot-email" type="email" autocomplete="email" required>
+<button id="forgot-button" type="submit">Tuma kiungo</button>
+<div id="forgot-message" class="account-message" aria-live="polite"></div>
+<button id="back-login-button" type="button" class="secondary-button">← Rudi Ingia</button>
 </form>
 
 <form id="signup-form" class="account-form" hidden>
@@ -83,9 +94,12 @@
 const {createClient}=window.supabase;
 const sb=createClient(window.AFRO_SUPABASE_URL,window.AFRO_SUPABASE_PUBLISHABLE_KEY);
 const loginTab=document.getElementById("login-tab"),signupTab=document.getElementById("signup-tab");
-const loginForm=document.getElementById("login-form"),signupForm=document.getElementById("signup-form");
-function tab(mode){const login=mode==="login";loginTab.classList.toggle("active",login);signupTab.classList.toggle("active",!login);loginForm.hidden=!login;signupForm.hidden=login}
+const loginForm=document.getElementById("login-form"),signupForm=document.getElementById("signup-form"),forgotForm=document.getElementById("forgot-form");
+function tab(mode){const login=mode==="login";loginTab.classList.toggle("active",login);signupTab.classList.toggle("active",!login);loginForm.hidden=!login;signupForm.hidden=login;forgotForm.hidden=true}
+function showForgot(){loginForm.hidden=true;signupForm.hidden=true;forgotForm.hidden=false;loginTab.classList.remove("active");signupTab.classList.remove("active");document.getElementById("forgot-email").value=document.getElementById("login-email").value.trim();document.getElementById("forgot-email").focus()}
 loginTab.onclick=()=>tab("login");signupTab.onclick=()=>tab("signup");
+document.getElementById("forgot-password-link").onclick=showForgot;
+document.getElementById("back-login-button").onclick=()=>tab("login");
 function msg(el,text,type){el.textContent=text;el.className="account-message "+(type||"")}
 async function routeUser(user){
   const {data:role}=await sb.from("user_roles").select("role").eq("user_id",user.id).maybeSingle();
@@ -103,6 +117,18 @@ loginForm.addEventListener("submit",async e=>{
   if(error){msg(m,"Imeshindikana kuingia. Hakikisha taarifa zako ni sahihi.","error");btn.disabled=false;btn.textContent="Ingia";return}
   try{await routeUser(data.user)}catch(err){msg(m,err.message||"Imeshindikana kuingia.","error");btn.disabled=false;btn.textContent="Ingia"}
 });
+forgotForm.addEventListener("submit",async e=>{
+  e.preventDefault();
+  const btn=document.getElementById("forgot-button"),m=document.getElementById("forgot-message");
+  msg(m,"");btn.disabled=true;btn.textContent="Inatuma...";
+  const email=document.getElementById("forgot-email").value.trim();
+  const redirectTo=new URL("./update-password.html",location.href).href;
+  const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo});
+  if(error){msg(m,"Imeshindikana kutuma kiungo. Jaribu tena baadaye.","error");}
+  else{msg(m,"Ikiwa barua pepe hii ina akaunti, kiungo cha kuweka nenosiri jipya kimetumwa.","success");}
+  btn.disabled=false;btn.textContent="Tuma kiungo";
+});
+
 signupForm.addEventListener("submit",async e=>{
   e.preventDefault();const btn=document.getElementById("signup-button"),m=document.getElementById("signup-message");
   msg(m,"");const name=document.getElementById("signup-name").value.trim(),email=document.getElementById("signup-email").value.trim(),p=document.getElementById("signup-password").value,p2=document.getElementById("signup-password-confirm").value;
