@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="sw">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AFRO SPORT — Dashibodi</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <main class="login-card" style="margin:8vh auto">
+    <p class="eyebrow">AFRO SPORT</p>
+    <h2>Dashibodi ya Admin</h2>
+    <p id="welcome" class="muted">Inapakia...</p>
+    <button id="logout">Toka</button>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./config.js"></script>
+  <script>
+    const { createClient } = window.supabase;
+    const sb = createClient(window.AFRO_SUPABASE_URL, window.AFRO_SUPABASE_PUBLISHABLE_KEY);
+    const welcome = document.getElementById("welcome");
+    const logout = document.getElementById("logout");
+
+    (async () => {
+      const { data: { user } } = await sb.auth.getUser();
+      if (!user) { window.location.href = "./index.html"; return; }
+
+      const { data: role } = await sb.from("user_roles").select("role").eq("user_id", user.id).maybeSingle();
+      if (!role || !["super_admin","admin"].includes(role.role)) {
+        await sb.auth.signOut();
+        window.location.href = "./index.html";
+        return;
+      }
+
+      welcome.textContent = `Umeingia kama ${role.role === "super_admin" ? "Super Admin" : "Admin"} — ${user.email}`;
+    })();
+
+    logout.addEventListener("click", async () => {
+      await sb.auth.signOut();
+      window.location.href = "./index.html";
+    });
+  </script>
+</body>
+</html>
