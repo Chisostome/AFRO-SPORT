@@ -79,11 +79,11 @@ async function stageDetail(compId,stageId){
 }
 
 async function standings(id){
- const r=await db.from("league_standings").select("*").eq("league_id",id).order("points",{ascending:false}).order("goal_difference",{ascending:false});
+ const r=await db.from("league_standings").select("*").eq("league_id",id).order("points",{ascending:false}).order("goal_difference",{ascending:false}).order("goals_for",{ascending:false});
  const c=await db.from("leagues").select("name").eq("id",id).single();
- if(r.error)return shell("Standings",errBox(r.error));
- const rows=(r.data||[]).map((x,i)=>'<div class="row"><span><b>'+((i+1)+". "+esc(x.team_name||x.name))+'</b><small>'+x.played+' GP · '+x.wins+'W '+x.draws+'D '+x.losses+'L · '+x.goals_for+':'+x.goals_against+'</small></span><strong>'+x.points+' pts</strong></div>').join("")||'<div class="empty">Hakuna standings.</div>';
- shell("Standings · "+esc(c.data?.name||""),'<div class="card"><div class="list">'+rows+'</div></div>');
+ if(r.error)return shell("Msimamo",errBox(r.error));
+ const rows=(r.data||[]).map((x,i)=>'<div class="standings-table"><div class="standings-row standings-head"><span>#</span><span>Timu</span><span>MP</span><span>W</span><span>D</span><span>L</span><span>GD</span><span>PTS</span></div><div class="standings-row"><span>'+(i+1)+'</span><span><b>'+esc(x.team_name||x.name)+'</b></span><span>'+(x.played||0)+'</span><span>'+(x.wins||0)+'</span><span>'+(x.draws||0)+'</span><span>'+(x.losses||0)+'</span><span>'+(x.goal_difference??0)+'</span><strong>'+(x.points||0)+'</strong></div></div>').join("")||'<div class="empty">Hakuna msimamo bado.</div>';
+ shell("Msimamo · "+esc(c.data?.name||""),'<div class="card"><div class="standings-table-wrap">'+rows+'</div><p class="muted">MP = Mechi, W = Ushindi, D = Sare, L = Kufungwa, GD = Goal Difference, PTS = Pointi.</p></div>');
 }
 
 async function teams(){
