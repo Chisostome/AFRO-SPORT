@@ -108,9 +108,17 @@ function renderPlayers(rows){
     return '<a class="player-row" href="./player.html?id='+p.id+'">'+
       '<div class="player-avatar">'+(p.photo_url?'<img src="'+esc(p.photo_url)+'" alt="">':'👤')+'</div>'+
       '<div class="player-info"><strong>'+esc(full)+'</strong><small>'+esc(p.position||"Nafasi haijawekwa")+(p.nationality?" · "+esc(p.nationality):"")+'</small></div>'+
-      '<div class="player-meta"><span>'+esc(p.player_seasons?.length||0)+' ushiriki</span></div>'+
+      '<div class="player-meta"><span>'+esc(p.player_seasons?.length||0)+' ushiriki</span><button type="button" class="danger-button list-delete-player" data-id="'+p.id+'" data-name="'+esc(full)+'">Futa</button></div>'+
     '</a>';
   }).join("");
+}
+
+async function deletePlayer(id,name){
+  if(!confirm("Una uhakika unataka kufuta mchezaji "+name+"?")) return;
+  const {error}=await sb.from("players").delete().eq("id",id);
+  if(error){document.getElementById("page-message").textContent="Mchezaji hakufutwa. Anaweza kuwa bado ametumika kwenye mechi.";return;}
+  document.getElementById("page-message").textContent="Mchezaji amefutwa.";
+  await loadPlayers();
 }
 
 async function loadPlayers(){
@@ -122,6 +130,7 @@ async function loadPlayers(){
   const byPlayer={};(assignments||[]).forEach(a=>{(byPlayer[a.player_id]??=[]).push(a);});
   (data||[]).forEach(p=>p.player_seasons=byPlayer[p.id]||[]);
   renderPlayers(data||[]);
+  document.querySelectorAll(".list-delete-player").forEach(btn=>btn.onclick=e=>{e.preventDefault();e.stopPropagation();deletePlayer(btn.dataset.id,btn.dataset.name);});
 }
 
 async function loadOptions(){
