@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="sw">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AFRO SPORT — Ligi</title>
+  <link rel="stylesheet" href="./styles.css?v=20261002-3">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./assets/afro-sport-logo.jpg" type="image/jpeg">
+  <link rel="apple-touch-icon" href="./assets/afro-sport-logo.jpg">
+  <meta name="theme-color" content="#0b0b0b">
+</head>
+<body class="admin-body">
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <img class="brand-logo sidebar-logo" src="./assets/afro-sport-logo.jpg" alt="AFRO SPORT">
+      <div><strong>AFRO SPORT</strong><span>MICHEZO YA AFRO</span></div>
+    </div>
+    <nav class="admin-nav" aria-label="Menyu ya Admin">
+      <a href="./dashboard.html">⌂ <span>Dashibodi</span></a>
+      <a class="active" href="./leagues.html">🏆 <span>Ligi</span></a>
+      <a href="./teams.html">⚽ <span>Timu</span></a>
+      <a href="#" data-coming="Wachezaji">👤 <span>Wachezaji</span></a>
+      <a href="./matches.html">📅 <span>Mechi</span></a>
+      <a href="./standings.html">📊 <span>Msimamo</span></a>
+      <a href="./scorers.html">🥇 <span>Wafungaji Bora</span></a>
+      <a href="./stats.html">📈 <span>Takwimu</span></a>
+    </nav>
+    <button class="logout-button" id="logout">Toka</button>
+  </aside>
+
+  <main class="admin-main">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">USIMAMIZI</p>
+        <h1>Ligi</h1>
+      </div>
+      <div class="admin-user">
+        <strong id="role-label">Inapakia...</strong>
+        <span id="user-email"></span>
+      </div>
+    </header>
+
+    <section class="page-intro">
+      <div>
+        <p class="eyebrow">MASHINDANO</p>
+        <h2>Simamia ligi na misimu</h2>
+        <p>Unda mashindano mengi, chagua aina yake, kisha ongeza misimu bila kufuta historia.</p>
+      </div>
+      <button class="primary-button" id="show-league-form">+ Ongeza Ligi</button>
+    </section>
+
+    <section class="league-layout">
+      <article class="panel league-list-panel">
+        <div class="panel-head">
+          <div><p class="eyebrow">ORODHA</p><h3>Ligi zilizopo</h3></div>
+          <span class="count-badge" id="league-total">0</span>
+        </div>
+        <div id="league-list" class="league-list">
+          <p class="empty-state">Inapakia ligi...</p>
+        </div>
+      </article>
+
+      <article class="panel form-panel" id="league-form-panel" hidden>
+        <div class="panel-head">
+          <div><p class="eyebrow">MPYA</p><h3>Ongeza Ligi</h3></div>
+        </div>
+        <form id="league-form" class="admin-form">
+          <label for="league-name">Jina la mashindano</label>
+          <input id="league-name" required placeholder="Mfano: NBC Premier League">
+
+          <label for="competition-type">Aina ya mashindano</label>
+          <select id="competition-type" required>
+            <option value="league">Ligi</option>
+            <option value="cup">Kombe</option>
+            <option value="playoff">Playoff</option>
+            <option value="champions_league">Champions League</option>
+            <option value="continental">Mashindano ya Bara</option>
+            <option value="national">Mashindano ya Taifa</option>
+            <option value="friendly">Kirafiki</option>
+            <option value="youth">Vijana</option>
+            <option value="women">Wanawake</option>
+            <option value="college">Vyuo</option>
+            <option value="other">Nyingine</option>
+          </select>
+
+          <label for="league-country">Nchi</label>
+          <input id="league-country" placeholder="Mfano: Tanzania">
+
+          <label for="league-logo">Logo URL <span class="optional">(hiari)</span></label>
+          <input id="league-logo" type="url" placeholder="https://...">
+
+          <label for="league-description">Maelezo <span class="optional">(hiari)</span></label>
+          <textarea id="league-description" rows="4" placeholder="Maelezo mafupi ya mashindano"></textarea>
+
+          <label class="check-row">
+            <input id="league-active" type="checkbox" checked>
+            <span>Ligi iwe hai</span>
+          </label>
+
+          <div class="form-actions">
+            <button type="button" class="secondary-button" id="cancel-league">Ghairi</button>
+            <button type="submit" class="primary-button" id="save-league">Hifadhi Ligi</button>
+          </div>
+          <p id="league-message" class="message"></p>
+        </form>
+      </article>
+    </section>
+
+    <section class="panel seasons-panel" id="seasons-panel" hidden>
+      <div class="panel-head">
+        <div><p class="eyebrow">MISIMU</p><h3 id="selected-league-title">Msimu</h3></div>
+        <div class="season-panel-actions">
+          <button class="secondary-button danger-button" id="delete-league" type="button">Futa Ligi</button>
+          <button class="secondary-button" id="show-season-form">+ Ongeza Msimu</button>
+        </div>
+      </div>
+
+      <form id="season-form" class="admin-form inline-form" hidden>
+        <input id="season-name" required placeholder="Mfano: 2026/27">
+        <input id="season-start" type="date">
+        <input id="season-end" type="date">
+        <label class="check-row compact"><input id="season-current" type="checkbox"> <span>Msimu wa sasa</span></label>
+        <button type="submit" class="primary-button" id="save-season">Hifadhi</button>
+      </form>
+
+      <div id="season-list" class="season-list">
+        <p class="empty-state">Chagua ligi kuona misimu.</p>
+      </div>
+    </section>
+
+    <p id="page-message" class="message page-message"></p>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./config.js"></script>
+  <script>
+    const { createClient } = window.supabase;
+    const sb = createClient(window.AFRO_SUPABASE_URL, window.AFRO_SUPABASE_PUBLISHABLE_KEY);
+
+    const typeLabels = {
+      league:"Ligi", cup:"Kombe", playoff:"Playoff", champions_league:"Champions League",
+      continental:"Mashindano ya Bara", national:"Mashindano ya Taifa", friendly:"Kirafiki",
+      youth:"Vijana", women:"Wanawake", college:"Vyuo", other:"Nyingine"
+    };
+
+    let selectedLeague = null;
+
+    const slugify = (value) => value.toLowerCase().trim()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+
+    const escapeHtml = (value) => String(value ?? "")
+      .replace(/[&<>"']/g, (char) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;" }[char]));
+
+    async function requireAdmin() {
+      const { data: { user } } = await sb.auth.getUser();
+      if (!user) { window.location.href = "./index.html"; return false; }
+
+      const { data: role } = await sb.from("user_roles").select("role").eq("user_id", user.id).maybeSingle();
+      if (!role || !["super_admin","admin"].includes(role.role)) {
+        await sb.auth.signOut();
+        window.location.href = "./index.html";
+        return false;
+      }
+
+      document.getElementById("role-label").textContent =
+        role.role === "super_admin" ? "Super Admin" : "Admin";
+      document.getElementById("user-email").textContent = user.email || "";
+      return true;
+    }
+
+    function renderLeagues(leagues) {
+      const list = document.getElementById("league-list");
+      document.getElementById("league-total").textContent = leagues.length;
+
+      if (!leagues.length) {
+        list.innerHTML = '<p class="empty-state">Hakuna ligi bado. Anza kwa kubonyeza “Ongeza Ligi”.</p>';
+        return;
+      }
+
+      list.innerHTML = leagues.map((league) => `
+        <button class="league-row ${selectedLeague?.id === league.id ? "selected" : ""}" data-id="${league.id}">
+          <span class="league-icon">${league.logo_url ? `<img src="${escapeHtml(league.logo_url)}" alt="">` : "🏆"}</span>
+          <span class="league-info">
+            <strong>${escapeHtml(league.name)}</strong>
+            <small>${escapeHtml(typeLabels[league.competition_type] || "Nyingine")}${league.country ? " · " + escapeHtml(league.country) : ""}</small>
+          </span>
+          <span class="status-dot ${league.is_active ? "on" : ""}" title="${league.is_active ? "Hai" : "Haijatumika"}"></span>
+        </button>
+      `).join("");
+
+      list.querySelectorAll(".league-row").forEach((row) => {
+        row.addEventListener("click", () => selectLeague(row.dataset.id, leagues));
+      });
+    }
+
+    async function loadLeagues() {
+      const { data, error } = await sb.from("leagues")
+        .select("id,name,slug,country,logo_url,description,competition_type,is_active")
+        .order("name");
+
+      if (error) {
+        document.getElementById("league-list").innerHTML = '<p class="empty-state error-state">Imeshindikana kupakia ligi.</p>';
+        return;
+      }
+      renderLeagues(data || []);
+    }
+
+    async function selectLeague(id, leagues) {
+      selectedLeague = leagues.find((league) => league.id === id) || null;
+      renderLeagues(leagues);
+      if (!selectedLeague) return;
+
+      document.getElementById("seasons-panel").hidden = false;
+      document.getElementById("selected-league-title").textContent = selectedLeague.name;
+      document.getElementById("season-form").hidden = true;
+      await loadSeasons();
+    }
+
+    async function loadSeasons() {
+      const list = document.getElementById("season-list");
+      list.innerHTML = '<p class="empty-state">Inapakia misimu...</p>';
+
+      const { data, error } = await sb.from("seasons")
+        .select("id,name,start_date,end_date,is_current")
+        .eq("league_id", selectedLeague.id)
+        .order("start_date", { ascending: false, nullsFirst: false })
+        .order("name", { ascending: false });
+
+      if (error) {
+        list.innerHTML = '<p class="empty-state error-state">Imeshindikana kupakia misimu.</p>';
+        return;
+      }
+
+      if (!data.length) {
+        list.innerHTML = '<p class="empty-state">Hakuna msimu bado kwa ligi hii.</p>';
+        return;
+      }
+
+      list.innerHTML = data.map((season) => `
+        <div class="season-row">
+          <div><strong>${escapeHtml(season.name)}</strong><small>${season.start_date || "—"} → ${season.end_date || "—"}</small></div>
+          <div class="season-actions">
+            <span class="season-badge ${season.is_current ? "current" : ""}">${season.is_current ? "Sasa" : "Historia"}</span>
+            <a class="secondary-button season-open" href="./stages.html?season=${season.id}">Hatua</a>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    document.getElementById("show-league-form").addEventListener("click", () => {
+      document.getElementById("league-form-panel").hidden = false;
+      document.getElementById("league-name").focus();
+    });
+
+    document.getElementById("cancel-league").addEventListener("click", () => {
+      document.getElementById("league-form-panel").hidden = true;
+      document.getElementById("league-form").reset();
+      document.getElementById("league-active").checked = true;
+    });
+
+    document.getElementById("league-form").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const button = document.getElementById("save-league");
+      const message = document.getElementById("league-message");
+      button.disabled = true; button.textContent = "Inahifadhi...";
+      message.textContent = "";
+
+      const name = document.getElementById("league-name").value.trim();
+      const payload = {
+        name,
+        slug: slugify(name) + "-" + Date.now().toString(36),
+        competition_type: document.getElementById("competition-type").value,
+        country: document.getElementById("league-country").value.trim() || null,
+        logo_url: document.getElementById("league-logo").value.trim() || null,
+        description: document.getElementById("league-description").value.trim() || null,
+        is_active: document.getElementById("league-active").checked
+      };
+
+      const { error } = await sb.from("leagues").insert(payload);
+      if (error) {
+        message.textContent = error.code === "23505" ? "Ligi yenye taarifa hiyo tayari ipo." : "Imeshindikana kuhifadhi ligi.";
+      } else {
+        document.getElementById("league-form").reset();
+        document.getElementById("league-active").checked = true;
+        document.getElementById("league-form-panel").hidden = true;
+        await loadLeagues();
+      }
+      button.disabled = false; button.textContent = "Hifadhi Ligi";
+    });
+
+    document.getElementById("delete-league").addEventListener("click", async () => {
+      if (!selectedLeague) return;
+
+      const confirmed = window.confirm(
+        `Una uhakika unataka kufuta ligi "${selectedLeague.name}"? Hii itafuta pia misimu, hatua na data zake zinazohusiana. Kitendo hiki hakiwezi kutenduliwa.`
+      );
+      if (!confirmed) return;
+
+      const button = document.getElementById("delete-league");
+      const message = document.getElementById("page-message");
+      button.disabled = true;
+      button.textContent = "Inafuta...";
+      message.textContent = "";
+
+      const leagueId = selectedLeague.id;
+      const { error } = await sb.from("leagues").delete().eq("id", leagueId);
+
+      if (error) {
+        message.textContent = "Imeshindikana kufuta ligi.";
+        button.disabled = false;
+        button.textContent = "Futa Ligi";
+        return;
+      }
+
+      selectedLeague = null;
+      document.getElementById("seasons-panel").hidden = true;
+      document.getElementById("season-list").innerHTML = '<p class="empty-state">Chagua ligi kuona misimu.</p>';
+      document.getElementById("page-message").textContent = "Ligi imefutwa.";
+      await loadLeagues();
+
+      button.disabled = false;
+      button.textContent = "Futa Ligi";
+    });
+
+    document.getElementById("show-season-form").addEventListener("click", () => {
+      document.getElementById("season-form").hidden = false;
+      document.getElementById("season-name").focus();
+    });
+
+    document.getElementById("season-form").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const button = document.getElementById("save-season");
+      button.disabled = true; button.textContent = "Inahifadhi...";
+
+      const isCurrent = document.getElementById("season-current").checked;
+      if (isCurrent) {
+        await sb.from("seasons").update({ is_current:false }).eq("league_id", selectedLeague.id);
+      }
+
+      const { error } = await sb.from("seasons").insert({
+        league_id: selectedLeague.id,
+        name: document.getElementById("season-name").value.trim(),
+        start_date: document.getElementById("season-start").value || null,
+        end_date: document.getElementById("season-end").value || null,
+        is_current: isCurrent
+      });
+
+      document.getElementById("season-form").hidden = true;
+      document.getElementById("season-form").reset();
+      button.disabled = false; button.textContent = "Hifadhi";
+      document.getElementById("page-message").textContent = error
+        ? "Imeshindikana kuhifadhi msimu."
+        : "Msimu umehifadhiwa.";
+      if (!error) await loadSeasons();
+    });
+
+    document.querySelectorAll("[data-coming]").forEach((link) => {
+      link.addEventListener("click", (event) => {
+        event.preventDefault();
+        document.getElementById("page-message").textContent =
+          link.dataset.coming + " itajengwa katika hatua inayofuata.";
+      });
+    });
+
+    document.getElementById("logout").addEventListener("click", async () => {
+      await sb.auth.signOut();
+      window.location.href = "./index.html";
+    });
+
+    (async () => {
+      if (await requireAdmin()) await loadLeagues();
+    })();
+  </script>
+</body>
+</html>
