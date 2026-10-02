@@ -106,7 +106,10 @@
     <section class="panel seasons-panel" id="seasons-panel" hidden>
       <div class="panel-head">
         <div><p class="eyebrow">MISIMU</p><h3 id="selected-league-title">Msimu</h3></div>
-        <button class="secondary-button" id="show-season-form">+ Ongeza Msimu</button>
+        <div class="season-panel-actions">
+          <button class="secondary-button danger-button" id="delete-league" type="button">Futa Ligi</button>
+          <button class="secondary-button" id="show-season-form">+ Ongeza Msimu</button>
+        </div>
       </div>
 
       <form id="season-form" class="admin-form inline-form" hidden>
@@ -281,6 +284,40 @@
         await loadLeagues();
       }
       button.disabled = false; button.textContent = "Hifadhi Ligi";
+    });
+
+    document.getElementById("delete-league").addEventListener("click", async () => {
+      if (!selectedLeague) return;
+
+      const confirmed = window.confirm(
+        `Una uhakika unataka kufuta ligi "${selectedLeague.name}"? Hii itafuta pia misimu, hatua na data zake zinazohusiana. Kitendo hiki hakiwezi kutenduliwa.`
+      );
+      if (!confirmed) return;
+
+      const button = document.getElementById("delete-league");
+      const message = document.getElementById("page-message");
+      button.disabled = true;
+      button.textContent = "Inafuta...";
+      message.textContent = "";
+
+      const leagueId = selectedLeague.id;
+      const { error } = await sb.from("leagues").delete().eq("id", leagueId);
+
+      if (error) {
+        message.textContent = "Imeshindikana kufuta ligi.";
+        button.disabled = false;
+        button.textContent = "Futa Ligi";
+        return;
+      }
+
+      selectedLeague = null;
+      document.getElementById("seasons-panel").hidden = true;
+      document.getElementById("season-list").innerHTML = '<p class="empty-state">Chagua ligi kuona misimu.</p>';
+      document.getElementById("page-message").textContent = "Ligi imefutwa.";
+      await loadLeagues();
+
+      button.disabled = false;
+      button.textContent = "Futa Ligi";
     });
 
     document.getElementById("show-season-form").addEventListener("click", () => {
