@@ -137,3 +137,7 @@
 @media(max-width:1050px){.lineup-admin-grid{grid-template-columns:1fr}}
 @media(max-width:700px){.lineup-editor-toolbar{grid-template-columns:1fr}.lineup-dnd-layout{grid-template-columns:1fr}.lineup-roster{max-height:250px}.lineup-roster-list{grid-template-columns:1fr 1fr}.pitch.lineup-dnd-pitch{width:min(100%,560px);margin:auto}}
 @media(max-width:480px){.lineup-roster-list,.bench-drop-list{grid-template-columns:1fr}.pitch-editor-player{width:62px}.pitch-editor-photo{width:36px;height:36px}.pitch-editor-player b{font-size:7px}.pitch-editor-player small{font-size:7px}}
+
+.sub-time-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+#substitutionBox select,#substitutionBox input{margin-bottom:8px}
+#subList{margin-top:10px}
