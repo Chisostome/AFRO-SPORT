@@ -141,3 +141,7 @@
 .sub-time-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 #substitutionBox select,#substitutionBox input{margin-bottom:8px}
 #subList{margin-top:10px}
+
+/* Live Match Center */
+.live-match-card{overflow:hidden}.live-score-meta{display:flex;align-items:center;justify-content:center;gap:10px;margin:12px 0}.live-pill{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:rgba(220,38,38,.12);color:#ef4444;font-weight:800;font-size:.78rem}.live-clock{font-size:1.35rem;font-weight:900;letter-spacing:.04em}.live-period,.status-pill{padding:6px 10px;border-radius:999px;background:var(--surface-2,#eef2f0);font-size:.78rem;font-weight:700}.live-admin-card{text-align:center}.live-admin-clock{font-size:3rem;font-weight:900;letter-spacing:.05em;margin:14px 0}.live-event{align-items:center}.live-event small{display:block}.muted{color:var(--muted,#718096)}
+@media (max-width:700px){.live-admin-clock{font-size:2.25rem}.live-score-meta{flex-wrap:wrap}.live-clock{font-size:1.15rem}}
