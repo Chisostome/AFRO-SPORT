@@ -274,8 +274,8 @@ async function adminLineup(id){
    const captainIsStarter=captain.value&&starters.some(([pid])=>pid===captain.value);if(captain.value&&!captainIsStarter)captain.value="";
    editor.classList.toggle("lineup-complete",starters.length===11);
   };
-  const dragPayload=e=>{const el=e.currentTarget;e.dataTransfer.setData("text/plain",el.dataset.player);e.dataTransfer.effectAllowed="move";el.classList.add("dragging");};
-  editor.addEventListener("dragstart",e=>{if(e.target.closest("[data-player]"))dragPayload(e)});
+  const dragPayload=e=>{const el=e.target.closest("[data-player]");if(!el)return;e.dataTransfer.setData("text/plain",el.dataset.player);e.dataTransfer.effectAllowed="move";el.classList.add("dragging");};
+  editor.addEventListener("dragstart",e=>dragPayload(e));
   editor.addEventListener("dragend",e=>e.target.closest("[data-player]")?.classList.remove("dragging"));
   const placeOnPitch=(pid,e)=>{
    if(!rosterData.has(pid))return;
