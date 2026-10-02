@@ -101,7 +101,7 @@ function renderPlayers(rows){
   if(!rows.length){list.innerHTML='<p class="empty-state">Hakuna mchezaji bado. Anza kwa “Ongeza Mchezaji”.</p>';return;}
   list.innerHTML=rows.map(p=>{
     const full=(p.first_name+" "+p.last_name).trim();
-    return '<a class="player-row" href="./player.html?id='+p.id+'">
+    return '<a class="player-row" href="./player.html?id='+p.id+'">'+
       '<div class="player-avatar">'+(p.photo_url?'<img src="'+esc(p.photo_url)+'" alt="">':'👤')+'</div>'+
       '<div class="player-info"><strong>'+esc(full)+'</strong><small>'+esc(p.position||"Nafasi haijawekwa")+(p.nationality?" · "+esc(p.nationality):"")+'</small></div>'+
       '<div class="player-meta"><span>'+esc(p.player_seasons?.length||0)+' ushiriki</span></div>'+
@@ -180,7 +180,7 @@ document.getElementById("player-form").onsubmit=async e=>{
 document.querySelectorAll("[data-coming]").forEach(l=>l.onclick=e=>{e.preventDefault();document.getElementById("page-message").textContent=l.dataset.coming+" itajengwa katika hatua inayofuata.";});
 document.getElementById("logout").onclick=async()=>{await sb.auth.signOut();location.href="./index.html";};
 
-(async()=>{try{if(await requireAdmin()){await loadOptions();await loadPlayers();}}catch(error){console.error(error);document.getElementById("player-list").innerHTML='<p class="empty-state error-state">Imeshindikana kupakia wachezaji. Fungua upya ukurasa.</p>';}})();
+(async()=>{try{if(await requireAdmin()){await loadPlayers();await loadOptions();}}catch(error){console.error(error);document.getElementById("player-list").innerHTML='<p class="empty-state error-state">Imeshindikana kupakia wachezaji. Fungua upya ukurasa.</p>';}})();
 </script>
 </body>
 </html>
