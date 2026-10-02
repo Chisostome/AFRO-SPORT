@@ -25,6 +25,7 @@
       <a href="./standings.html">📊 <span>Msimamo</span></a>
       <a href="./scorers.html">🥇 <span>Wafungaji Bora</span></a>
       <a href="./stats.html">📈 <span>Takwimu</span></a>
+      <a href="./admins.html" id="admins-nav" style="display:none">🛡 <span>Admins</span></a>
     </nav>
     <button class="logout-button" id="logout">Toka</button>
   </aside>
@@ -96,7 +97,8 @@
       if (!user) { window.location.href = "./index.html"; return; }
 
       const { data: role } = await sb.from("user_roles").select("role").eq("user_id", user.id).maybeSingle();
-      if (!role || !["super_admin", "admin"].includes(role.role)) {
+      const { data: profile } = await sb.from("profiles").select("is_active").eq("user_id", user.id).maybeSingle();
+      if (!role || !["super_admin", "admin"].includes(role.role) || profile?.is_active === false) {
         await sb.auth.signOut();
         window.location.href = "./index.html";
         return;
@@ -104,6 +106,9 @@
 
       document.getElementById("role-label").textContent =
         role.role === "super_admin" ? "Super Admin" : "Admin";
+      if (role.role === "super_admin") {
+        document.getElementById("admins-nav").style.display = "";
+      }
       document.getElementById("user-email").textContent = user.email || "";
 
       const [leagues, teams, players, matches] = await Promise.all([
