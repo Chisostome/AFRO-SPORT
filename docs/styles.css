@@ -291,3 +291,17 @@ button:disabled{opacity:.65;cursor:not-allowed}
   .season-panel-actions{flex-wrap:wrap;justify-content:flex-end}
   .season-panel-actions button{flex:1}
 }
+
+
+.team-layout{display:grid;grid-template-columns:1.15fr .85fr;gap:20px;align-items:start}
+.team-list{margin-top:16px;display:grid;gap:8px}
+.team-row{display:flex;align-items:center;gap:12px;border:1px solid var(--line);border-radius:13px;padding:12px;background:#fff}
+.team-icon{width:44px;height:44px;border-radius:11px;background:var(--green-soft);display:grid;place-items:center;overflow:hidden;flex:none;font-size:20px}
+.team-icon img{width:100%;height:100%;object-fit:cover}
+.team-info{min-width:0;flex:1}
+.team-info strong,.team-info small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.team-info strong{font-size:13px}
+.team-info small{font-size:11px;color:var(--muted);margin-top:4px}
+.team-meta{max-width:180px;color:var(--muted);font-size:10px;text-align:right}
+@media(max-width:1000px){.team-layout{grid-template-columns:1fr}}
+@media(max-width:680px){.team-meta{display:none}}
