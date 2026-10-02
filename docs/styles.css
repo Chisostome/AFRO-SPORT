@@ -35,3 +35,5 @@
 
 
 .team-card,.player-card{overflow:hidden}.team-logo{width:76px;height:76px;object-fit:contain;border-radius:18px;background:rgba(255,255,255,.04);border:1px solid var(--line);margin-bottom:14px}.team-logo-placeholder,.player-photo-placeholder{display:flex;align-items:center;justify-content:center;font-size:30px}.team-logo-large{width:120px;height:120px;margin:0 auto 18px;display:block}.player-photo{width:96px;height:96px;object-fit:cover;border-radius:50%;background:rgba(255,255,255,.04);border:1px solid var(--line);margin-bottom:14px}.player-photo-large{width:150px;height:150px;margin:0 auto 18px;display:block}.team-profile,.player-profile{text-align:center}
+
+.danger{border-color:#8b3a3a!important;color:#ff9b9b!important}.danger:hover{background:rgba(255,255,255,.05)}
