@@ -87,9 +87,9 @@ async function standings(id){
 }
 
 async function teams(){
- const r=await db.from("teams").select("id,name,short_name,city,leagues(name)").order("name");
+ const r=await db.from("teams").select("id,name,short_name,city,logo_url,leagues(name)").order("name");
  if(r.error)return shell("Timu",errBox(r.error));
- shell("Timu",'<div class="cards">'+(r.data||[]).map(x=>'<a class="card" href="#/teams/'+x.id+'"><h2>'+esc(x.name)+'</h2><p>'+esc(x.short_name||"")+' · '+esc(x.city||"")+'</p><small>'+esc(x.leagues?.name||"")+'</small></a>').join("")+'</div>');
+ shell("Timu",'<div class="cards">'+(r.data||[]).map(x=>'<a class="card team-card" href="#/teams/'+x.id+'">'+(x.logo_url?'<img class="team-logo" src="'+esc(x.logo_url)+'" alt="Logo ya '+esc(x.name)+'" loading="lazy">':'<div class="team-logo team-logo-placeholder">⚽</div>')+'<h2>'+esc(x.name)+'</h2><p>'+esc(x.short_name||"")+' · '+esc(x.city||"")+'</p><small>'+esc(x.leagues?.name||"")+'</small></a>').join("")+'</div>');
 }
 
 async function team(id){
@@ -103,9 +103,9 @@ async function team(id){
 }
 
 async function players(){
- const r=await db.from("players").select("id,name,position,jersey_number,teams(name)").order("name").limit(200);
+ const r=await db.from("players").select("id,name,position,jersey_number,photo_url,teams(name)").order("name").limit(200);
  if(r.error)return shell("Wachezaji",errBox(r.error));
- shell("Wachezaji",'<div class="cards">'+(r.data||[]).map(x=>'<a class="card" href="#/players/'+x.id+'"><h2>'+esc(x.name)+'</h2><p>'+esc(x.position||"")+' · #'+esc(x.jersey_number||"—")+'</p><small>'+esc(x.teams?.name||"")+'</small></a>').join("")+'</div>');
+ shell("Wachezaji",'<div class="cards">'+(r.data||[]).map(x=>'<a class="card player-card" href="#/players/'+x.id+'">'+(x.photo_url?'<img class="player-photo" src="'+esc(x.photo_url)+'" alt="Picha ya '+esc(x.name)+'" loading="lazy">':'<div class="player-photo player-photo-placeholder">👤</div>')+'<h2>'+esc(x.name)+'</h2><p>'+esc(x.position||"")+' · #'+esc(x.jersey_number||"—")+'</p><small>'+esc(x.teams?.name||"")+'</small></a>').join("")+'</div>');
 }
 
 async function player(id){
@@ -117,7 +117,7 @@ async function player(id){
  if(p.error)return shell("Mchezaji",errBox(p.error));
  const stats=(s.data||[]).map(x=>'<div class="row"><span><b>'+esc(x.team_name||"Competition")+'</b><small>'+x.event_matches+' matches · '+x.assists+' assists · '+x.yellow_cards+' yellow · '+x.red_cards+' red</small></span><strong>'+x.goals+' ⚽</strong></div>').join("")||'<div class="empty">Hakuna stats za matukio.</div>';
  const events=await db.from("match_events").select("event_type,minute,match_id").eq("player_id",id).order("created_at",{ascending:false}).limit(30);
- shell(esc(p.data.name),'<div class="detail"><section class="card"><div class="tag">'+esc(p.data.position||"")+'</div><h2>'+esc(p.data.teams?.name||"")+'</h2><p>Namba '+esc(p.data.jersey_number||"—")+'</p><h2>Competition Stats</h2><div class="list">'+stats+'</div></section><section class="card"><h2>Recent appearances</h2><p>'+((a.data||[]).length)+' appearances zilizorekodiwa.</p><h2>Events</h2><div class="list">'+(events.data||[]).slice(0,12).map(x=>'<div class="row"><span><b>'+esc(x.event_type)+'</b><small>Match '+esc(x.match_id)+' · '+esc(x.minute||"")+"'</small></span></div>").join("")+'</div></section></div>');
+ shell(esc(p.data.name),'<div class="detail"><section class="card player-profile">'+(p.data.photo_url?'<img class="player-photo player-photo-large" src="'+esc(p.data.photo_url)+'" alt="Picha ya '+esc(p.data.name)+'">':'')+'<div class="tag">'+esc(p.data.position||"")+'</div><h2>'+esc(p.data.teams?.name||"")+'</h2><p>Namba '+esc(p.data.jersey_number||"—")+'</p><h2>Competition Stats</h2><div class="list">'+stats+'</div></section><section class="card"><h2>Recent appearances</h2><p>'+((a.data||[]).length)+' appearances zilizorekodiwa.</p><h2>Events</h2><div class="list">'+(events.data||[]).slice(0,12).map(x=>'<div class="row"><span><b>'+esc(x.event_type)+'</b><small>Match '+esc(x.match_id)+' · '+esc(x.minute||"")+"'</small></span></div>").join("")+'</div></section></div>');
 }
 
 async function matches(){
