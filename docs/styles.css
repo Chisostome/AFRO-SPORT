@@ -282,3 +282,12 @@ button:disabled{opacity:.65;cursor:not-allowed}
   .form-grid{grid-template-columns:1fr}
   .season-actions{flex-wrap:wrap;justify-content:flex-end}
 }
+
+
+.season-panel-actions{display:flex;align-items:center;gap:8px}
+.danger-button{background:#fff1f0;color:#b42318;border-color:#f2c7c3}
+.danger-button:hover{background:#ffe4e1;border-color:#e9aaa4}
+@media(max-width:680px){
+  .season-panel-actions{flex-wrap:wrap;justify-content:flex-end}
+  .season-panel-actions button{flex:1}
+}
