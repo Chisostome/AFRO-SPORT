@@ -22,3 +22,13 @@
 @media(max-width:760px){.admin-hero{align-items:flex-start;flex-direction:column}.admin-role{align-self:flex-start}}
 
 .form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.form-grid label{display:grid;gap:7px;color:var(--muted);font-size:12px;font-weight:700}.form-grid input{width:100%}@media(max-width:560px){.form-grid{grid-template-columns:1fr}}
+
+
+/* Msimamo: MP, W, D, L, GD, PTS */
+.standings-table-wrap{overflow-x:auto}
+.standings-table{min-width:620px}
+.standings-row{display:grid;grid-template-columns:42px minmax(180px,1fr) repeat(6,52px);gap:8px;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line);font-size:14px}
+.standings-head{font-size:12px;text-transform:uppercase;color:var(--muted);font-weight:700;background:rgba(255,255,255,.02)}
+.standings-row>span:nth-child(n+3),.standings-row>strong{text-align:center}
+.standings-row:last-child{border-bottom:0}
+@media(max-width:760px){.standings-row{grid-template-columns:34px minmax(150px,1fr) repeat(6,42px);gap:5px;padding:10px 8px;font-size:13px}.standings-table{min-width:500px}}
