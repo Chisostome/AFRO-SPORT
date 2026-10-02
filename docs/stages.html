@@ -107,6 +107,18 @@
       </div>
     </section>
 
+    <section class="panel stage-team-panel" id="stage-team-panel" hidden>
+      <div class="panel-head"><div><p class="eyebrow">TIMU</p><h3 id="selected-stage-title">Timu za Hatua</h3></div></div>
+      <form id="stage-team-form" class="stage-team-form">
+        <div><label for="stage-team">Timu</label><select id="stage-team" required><option value="">Chagua timu</option></select></div>
+        <div><label for="stage-group">Kundi <span class="optional">(hiari)</span></label><select id="stage-group"><option value="">Hakuna kundi</option></select></div>
+        <div><label for="stage-seed">Seed <span class="optional">(hiari)</span></label><input id="stage-seed" type="number" min="1" placeholder="1"></div>
+        <button class="primary-button" type="submit">+ Ongeza Timu</button>
+      </form>
+      <div id="stage-team-list" class="stage-team-list"><p class="empty-state">Inapakia timu...</p></div>
+      <p id="stage-team-message" class="message"></p>
+    </section>
+
     <p id="page-message" class="message page-message"></p>
   </main>
 
@@ -124,6 +136,7 @@
 
     const params = new URLSearchParams(window.location.search);
     const seasonId = params.get("season");
+    const selectedStageId = params.get("stage");
 
     const escapeHtml = (value) => String(value ?? "")
       .replace(/[&<>"']/g, (char) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;" }[char]));
@@ -197,10 +210,39 @@
             <strong>${escapeHtml(stage.stage_order)}. ${escapeHtml(stage.name)}</strong>
             <small>${escapeHtml(typeLabels[stage.stage_type] || stage.stage_type)} · ${stage.legs === 2 ? "Leg 2" : "Leg 1"}${stage.advancement_rule ? " · " + escapeHtml(stage.advancement_rule) : ""}</small>
           </div>
-          <span class="season-badge ${stage.is_current ? "current" : ""}">${stage.is_current ? "Sasa" : "Imewekwa"}</span>
+          <div class="season-actions"><a class="secondary-button season-open" href="./stages.html?season=${encodeURIComponent(seasonId)}&stage=${encodeURIComponent(stage.id)}">Timu</a><span class="season-badge ${stage.is_current ? "current" : ""}">${stage.is_current ? "Sasa" : "Imewekwa"}</span></div>
         </div>
       `).join("");
     }
+
+    async function loadSelectedStageTeams() {
+      if (!selectedStageId) return;
+      document.getElementById("stage-team-panel").hidden=false;
+      const [{data:stage,error:stageError},{data:teams,error:teamError},{data:groups,error:groupError}]=await Promise.all([
+        sb.from("competition_stages").select("id,name,stage_type").eq("id",selectedStageId).maybeSingle(),
+        sb.from("teams").select("id,name,short_name").order("name"),
+        sb.from("stage_groups").select("id,name,group_order").eq("stage_id",selectedStageId).order("group_order")
+      ]);
+      if(stageError||!stage){document.getElementById("selected-stage-title").textContent="Hatua haipatikani";return;}
+      document.getElementById("selected-stage-title").textContent="Timu za "+stage.name;
+      document.getElementById("stage-team").innerHTML='<option value="">Chagua timu</option>'+(teams||[]).map(t=>'<option value="'+t.id+'">'+escapeHtml(t.name)+(t.short_name?' ('+escapeHtml(t.short_name)+')':'')+'</option>').join("");
+      document.getElementById("stage-group").innerHTML='<option value="">Hakuna kundi</option>'+((groups||[]).map(g=>'<option value="'+g.id+'">'+escapeHtml(g.name)+'</option>').join(""));
+      await loadStageTeamList();
+    }
+    async function loadStageTeamList(){
+      const list=document.getElementById("stage-team-list");
+      const {data,error}=await sb.from("team_stage_entries").select("id,team_id,group_id,seed,teams(name,short_name),stage_groups(name)").eq("stage_id",selectedStageId).order("created_at");
+      if(error){list.innerHTML='<p class="empty-state error-state">Imeshindikana kupakia timu za hatua.</p>';return;}
+      if(!data?.length){list.innerHTML='<p class="empty-state">Hakuna timu iliyowekwa kwenye hatua hii.</p>';return;}
+      list.innerHTML=data.map(e=>'<div class="stage-team-row"><div><strong>'+escapeHtml(e.teams?.name||"Timu")+'</strong><small>'+(e.stage_groups?.name?escapeHtml(e.stage_groups.name)+" · ":"")+(e.seed?"Seed "+escapeHtml(e.seed):"Seed —")+'</small></div><button type="button" class="secondary-button danger-button stage-team-remove" data-entry="'+e.id+'">Ondoa</button></div>').join("");
+      list.querySelectorAll("[data-entry]").forEach(btn=>btn.addEventListener("click",async()=>{if(!confirm("Ondoa timu hii kwenye hatua?"))return;const {error}=await sb.from("team_stage_entries").delete().eq("id",btn.dataset.entry);if(error){document.getElementById("stage-team-message").textContent="Imeshindikana kuondoa timu.";return;}await loadStageTeamList();document.getElementById("stage-team-message").textContent="Timu imeondolewa."; }));
+    }
+    document.getElementById("stage-team-form").addEventListener("submit",async(e)=>{
+      e.preventDefault();const msg=document.getElementById("stage-team-message");const button=e.submitter;button.disabled=true;msg.textContent="";
+      const {error}=await sb.from("team_stage_entries").insert({stage_id:selectedStageId,team_id:document.getElementById("stage-team").value,group_id:document.getElementById("stage-group").value||null,seed:document.getElementById("stage-seed").value?Number(document.getElementById("stage-seed").value):null});
+      button.disabled=false;if(error){msg.textContent=error.code==="23505"?"Timu hii tayari ipo kwenye hatua.":"Imeshindikana kuongeza timu.";return;}
+      e.target.reset();msg.textContent="Timu imeongezwa kwenye hatua.";await loadStageTeamList();
+    });
 
     document.getElementById("show-stage-form").addEventListener("click", () => {
       const form = document.getElementById("stage-form");
@@ -284,7 +326,7 @@
 
     (async () => {
       if (!(await requireAdmin())) return;
-      if (await loadSeason()) await loadStages();
+      if (await loadSeason()) { await loadStages(); await loadSelectedStageTeams(); }
     })();
   </script>
 </body>
