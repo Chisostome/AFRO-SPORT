@@ -272,3 +272,13 @@ button:disabled{opacity:.65;cursor:not-allowed}
   .form-actions{flex-direction:column-reverse}
   .form-actions button{width:100%}
 }
+
+
+.form-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:14px 16px}
+.form-grid>div{min-width:0}
+.season-actions{display:flex;align-items:center;gap:8px}
+.season-open{padding:7px 10px;font-size:10px;text-decoration:none}
+@media(max-width:680px){
+  .form-grid{grid-template-columns:1fr}
+  .season-actions{flex-wrap:wrap;justify-content:flex-end}
+}
