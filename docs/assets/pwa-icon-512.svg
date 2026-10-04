@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+<rect width="512" height="512" rx="92" fill="#0b0b0b"/>
+<circle cx="256" cy="220.16" r="138.24" fill="#0d5c45"/>
+<path d="M 256 107.52 L 291.84 148.48 L 276.48 199.68 L 225.28 199.68 L 204.8 148.48 Z" fill="#fff"/>
+<path d="M 204.8 148.48 L 168.96 128 M 291.84 148.48 L 332.8 128 M 225.28 199.68 L 194.56 240.64 M 276.48 199.68 L 312.32 240.64" stroke="#fff" stroke-width="9" fill="none" stroke-linecap="round"/>
+<text x="50%" y="358.4" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="56" font-weight="800" fill="#fff">AFRO</text>
+<text x="50%" y="419.84" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="56" font-weight="800" fill="#0d5c45">SPORT</text>
+</svg>
