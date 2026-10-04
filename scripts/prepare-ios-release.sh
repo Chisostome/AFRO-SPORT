@@ -65,6 +65,7 @@ JSON
 /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $VERSION" "$PLIST" || /usr/libexec/PlistBuddy -c "Add :CFBundleShortVersionString string $VERSION" "$PLIST"
 /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $BUILD" "$PLIST" || /usr/libexec/PlistBuddy -c "Add :CFBundleVersion string $BUILD" "$PLIST"
 /usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier $APP_ID" "$PLIST" || /usr/libexec/PlistBuddy -c "Add :CFBundleIdentifier string $APP_ID" "$PLIST"
+/usr/libexec/PlistBuddy -c "Set :CFBundleIconName AppIcon" "$PLIST" || /usr/libexec/PlistBuddy -c "Add :CFBundleIconName string AppIcon" "$PLIST"
 /usr/libexec/PlistBuddy -c "Set :ITSAppUsesNonExemptEncryption false" "$PLIST" || /usr/libexec/PlistBuddy -c "Add :ITSAppUsesNonExemptEncryption bool false" "$PLIST"
 /usr/libexec/PlistBuddy -c "Set :UIDesignRequiresCompatibility true" "$PLIST" || /usr/libexec/PlistBuddy -c "Add :UIDesignRequiresCompatibility bool true" "$PLIST"
 
