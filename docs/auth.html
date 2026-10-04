@@ -6,7 +6,7 @@
 <link rel="stylesheet" href="./styles.css?v=20261002-13">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" href="./assets/afro-sport-logo.jpg" type="image/jpeg">
-<meta name="theme-color" content="#0b0b0b">
+<meta name="theme-color" content="#0b0b0b">\n<meta name="mobile-web-app-capable" content="yes">\n<meta name="apple-mobile-web-app-capable" content="yes">\n<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <style>
 .account-shell{min-height:100vh;display:grid;grid-template-columns:1fr 1fr;background:#f5f7f8}
 .account-brand{background:#0d5c45;color:#fff;padding:7vw;display:flex;flex-direction:column;justify-content:center}
@@ -142,5 +142,11 @@ signupForm.addEventListener("submit",async e=>{
 });
 sb.auth.getSession().then(({data})=>{if(data.session&&!location.search.includes("confirmed")) routeUser(data.session.user).catch(()=>{})});
 </script>
-</body>
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js", {scope: "./"}).catch(() => {});
+  });
+}
+</script>\n</body>
 </html>
