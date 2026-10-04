@@ -7,6 +7,7 @@ on:
       - "package.json"
       - "capacitor.config.ts"
       - "docs/**"
+      - "scripts/**"
       - ".github/workflows/build-mobile.yml"
 
 permissions:
@@ -71,6 +72,9 @@ jobs:
 
       - name: Sync web app
         run: npx cap sync ios
+
+      - name: Apply iOS release assets
+        run: bash scripts/prepare-ios-release.sh
 
       - name: Build iOS simulator app
         run: |
