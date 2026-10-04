@@ -3,7 +3,7 @@
 <title>AFRO SPORT — Michezo ya Afro</title><link rel="stylesheet" href="./styles.css?v=20261002-12">  <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./assets/afro-sport-logo.jpg" type="image/jpeg">
   <link rel="apple-touch-icon" href="./assets/afro-sport-logo.jpg">
-  <meta name="theme-color" content="#0b0b0b">
+  <meta name="theme-color" content="#0b0b0b">\n<meta name="mobile-web-app-capable" content="yes">\n<meta name="apple-mobile-web-app-capable" content="yes">\n<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 </head>
 <body class="public-body">
 <header class="public-header"><a class="public-brand" href="./public.html"><img class="brand-logo public-logo" src="./assets/afro-sport-logo.jpg" alt="AFRO SPORT"><span><strong>AFRO SPORT</strong><small>MICHEZO YA AFRO</small></span></a><nav><a class="active" href="./public.html">Nyumbani</a><a href="#mechi">Mechi</a><a href="#msimamo">Msimamo</a><a href="#wafungaji">Wafungaji</a></nav><a id="account-link" class="admin-link" href="./auth.html">Ingia / Jisajili</a></header>
@@ -24,4 +24,10 @@ async function loadScorers(){const {data,error}=await sb.from("top_scorers_calcu
 Promise.all([loadMatches(),loadStandings(),loadScorers()]).catch(console.error);
 </script><script>
 (async()=>{const link=document.getElementById("account-link");if(!link)return;const {data}=await sb.auth.getSession();if(data.session){link.textContent="Toka";link.href="#";link.onclick=async e=>{e.preventDefault();await sb.auth.signOut();location.reload()}}})();
-</script></body></html>
+</script><script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js", {scope: "./"}).catch(() => {});
+  });
+}
+</script>\n</body></html>
