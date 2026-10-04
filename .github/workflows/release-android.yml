@@ -66,6 +66,8 @@ jobs:
           STORE_PASSWORD="$(openssl rand -base64 32 | tr -dc 'A-Za-z0-9' | head -c 32)"
           KEY_PASSWORD="$(openssl rand -base64 32 | tr -dc 'A-Za-z0-9' | head -c 32)"
           KEY_ALIAS="afro-sport-upload"
+          echo "::add-mask::$STORE_PASSWORD"
+          echo "::add-mask::$KEY_PASSWORD"
           mkdir -p build/signing
           keytool -genkeypair -v \
             -keystore build/signing/afro-sport-upload.jks \
@@ -140,14 +142,15 @@ jobs:
         run: |
           ls -lh android/app/build/outputs/apk/release/*.apk
           ls -lh android/app/build/outputs/bundle/release/*.aab
-          jarsigner -verify -verbose -certs android/app/build/outputs/apk/release/app-release.apk | tail -n 8
-          keytool -printcert -jarfile android/app/build/outputs/apk/release/app-release.apk | grep -E "Owner|Issuer|SHA256"
+          APKSIGNER="$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -n 1)"
+          "$APKSIGNER" verify --verbose --print-certs android/app/build/outputs/apk/release/app-release.apk
+          jarsigner -verify -verbose android/app/build/outputs/bundle/release/app-release.aab >/dev/null
 
       - name: Package release artifacts
         run: |
           mkdir -p dist
-          cp android/app/build/outputs/apk/release/app-release.apk dist/AFRO-SPORT-1.0.0-release.apk
-          cp android/app/build/outputs/bundle/release/app-release.aab dist/AFRO-SPORT-1.0.0-release.aab
+          cp android/app/build/outputs/apk/release/app-release.apk "dist/AFRO-SPORT-${VERSION_NAME}-release.apk"
+          cp android/app/build/outputs/bundle/release/app-release.aab "dist/AFRO-SPORT-${VERSION_NAME}-release.aab"
           cp build/signing/afro-sport-upload.jks dist/AFRO-SPORT-upload-key.jks
           cp build/signing/release-signing-info.txt dist/AFRO-SPORT-upload-key.txt
           sha256sum dist/* > dist/SHA256SUMS.txt
