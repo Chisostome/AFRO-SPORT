@@ -2,6 +2,12 @@ name: Build AFRO SPORT mobile apps
 
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - "package.json"
+      - "capacitor.config.ts"
+      - "docs/**"
+      - ".github/workflows/build-mobile.yml"
 
 permissions:
   contents: read
