@@ -1,0 +1,73 @@
+name: Build AFRO SPORT mobile apps
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  android:
+    name: Android debug APK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Generate Android project
+        run: npx cap add android
+
+      - name: Sync web app
+        run: npx cap sync android
+
+      - name: Build debug APK
+        run: |
+          cd android
+          ./gradlew assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: afro-sport-android-debug
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+
+  ios:
+    name: iOS simulator build
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Generate iOS project
+        run: npx cap add ios --packagemanager SPM
+
+      - name: Sync web app
+        run: npx cap sync ios
+
+      - name: Build iOS simulator app
+        run: |
+          xcodebuild             -workspace ios/App/App.xcworkspace             -scheme App             -sdk iphonesimulator             -configuration Debug             -derivedDataPath build/ios             CODE_SIGNING_ALLOWED=NO
+
+      - name: Upload iOS simulator app
+        uses: actions/upload-artifact@v4
+        with:
+          name: afro-sport-ios-simulator
+          path: build/ios/Build/Products/Debug-iphonesimulator/App.app
