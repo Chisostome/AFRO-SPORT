@@ -72,13 +72,29 @@ async function requireAdmin(){
 }
 
 async function loadStages(){
-  const {data,error}=await sb.from("competition_stages")
-    .select("id,name,stage_type,seasons!inner(id,name,leagues!inner(name))")
+  const {data:stageRows,error:stageError}=await sb.from("competition_stages")
+    .select("id,name,stage_type,is_current,season_id,created_at")
     .order("created_at",{ascending:false});
-  if(error){document.getElementById("page-message").textContent="Imeshindikana kupakia hatua.";return;}
-  stages=data||[];
-  document.getElementById("stage-select").innerHTML='<option value="">Chagua hatua</option>'+
-    stages.map(s=>'<option value="'+s.id+'">'+esc(s.seasons?.leagues?.name||"Ligi")+" — "+esc(s.seasons?.name||"Msimu")+" — "+esc(s.name)+'</option>').join("");
+  if(stageError){console.error("competition_stages:",stageError);document.getElementById("page-message").textContent="Imeshindikana kupakia hatua: "+(stageError.message||"Hitilafu");return;}
+  const rows=stageRows||[];
+  const seasonIds=[...new Set(rows.map(s=>s.season_id).filter(Boolean))];
+  let seasonMap={};
+  if(seasonIds.length){
+    const {data:seasonRows,error:seasonError}=await sb.from("seasons").select("id,name,league_id").in("id",seasonIds);
+    if(seasonError){console.error("seasons:",seasonError);document.getElementById("page-message").textContent="Imeshindikana kupakia misimu.";return;}
+    seasonMap=Object.fromEntries((seasonRows||[]).map(s=>[s.id,s]));
+  }
+  const leagueIds=[...new Set(Object.values(seasonMap).map(s=>s.league_id).filter(Boolean))];
+  let leagueMap={};
+  if(leagueIds.length){
+    const {data:leagueRows,error:leagueError}=await sb.from("leagues").select("id,name").in("id",leagueIds);
+    if(leagueError){console.error("leagues:",leagueError);document.getElementById("page-message").textContent="Imeshindikana kupakia ligi.";return;}
+    leagueMap=Object.fromEntries((leagueRows||[]).map(l=>[l.id,l]));
+  }
+  stages=rows.map(s=>{const season=seasonMap[s.season_id]||{};return {...s,seasons:{...season,leagues:leagueMap[season.league_id]||null}};});
+  const currentStage=stages.find(s=>s.is_current&&s.stage_type==="league")||stages.find(s=>s.stage_type==="league")||stages[0];
+  document.getElementById("stage-select").innerHTML='<option value="">Chagua hatua</option>'+stages.map(s=>'<option value="'+s.id+'"'+(s.id===currentStage?.id?' selected':'')+'>'+esc(s.seasons?.leagues?.name||"Ligi")+" — "+esc(s.seasons?.name||"Msimu")+" — "+esc(s.name)+'</option>').join("");
+  if(currentStage) await loadStandings(currentStage.id);
 }
 
 async function loadStandings(stageId){
