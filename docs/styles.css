@@ -391,3 +391,48 @@ input[type="file"]{padding:9px!important;background:#f8faf9!important}
 /* AFRO SPORT logo consistency */
 .sidebar-brand .sidebar-logo{display:block;width:52px;height:52px;object-fit:cover;border-radius:12px;margin-bottom:28px;background:#111;}
 .sidebar-brand .brand-mark{display:none;}
+
+
+/* iPhone web-app experience */
+html{scroll-padding-top:82px}
+.public-body{-webkit-tap-highlight-color:transparent;overscroll-behavior-y:none}
+.public-header{padding-top:env(safe-area-inset-top);height:calc(72px + env(safe-area-inset-top))}
+.public-main{padding-bottom:70px}
+.mobile-app-nav{display:none}
+@media(max-width:800px){
+  body.public-body{padding-bottom:calc(68px + env(safe-area-inset-bottom))}
+  .public-header{height:calc(64px + env(safe-area-inset-top));padding-top:env(safe-area-inset-top)}
+  .public-brand{margin-left:2px}
+  .public-brand strong{font-size:13px}
+  .public-brand small{font-size:7px}
+  .public-logo{width:38px;height:38px}
+  .public-header .admin-link{display:none}
+  .public-main{padding:16px 14px calc(24px + env(safe-area-inset-bottom))}
+  .public-hero{border-radius:18px;padding:24px 20px;min-height:190px}
+  .public-hero h1{font-size:36px}
+  .hero-logo{width:92px;height:92px;border-radius:16px}
+  .public-section{scroll-margin-top:78px}
+  .mobile-app-nav{
+    position:fixed;left:0;right:0;bottom:0;z-index:100;
+    display:grid;grid-template-columns:repeat(5,1fr);
+    height:calc(64px + env(safe-area-inset-bottom));
+    padding:6px 6px env(safe-area-inset-bottom);
+    background:rgba(255,255,255,.96);
+    border-top:1px solid #dfe5e2;
+    box-shadow:0 -8px 28px rgba(19,36,31,.10);
+    backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)
+  }
+  .mobile-app-nav a{
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:3px;text-decoration:none;color:#7a858c;border-radius:12px;
+    font-size:20px;font-weight:800;min-width:0
+  }
+  .mobile-app-nav a span{line-height:20px}
+  .mobile-app-nav a small{font-size:9px;font-weight:800;white-space:nowrap}
+  .mobile-app-nav a.active{color:var(--green);background:var(--green-soft)}
+  .mobile-app-nav a:active{transform:scale(.96)}
+  .public-footer{padding-bottom:calc(86px + env(safe-area-inset-bottom))}
+}
+@media(display-mode:standalone){
+  .public-header{box-shadow:0 1px 12px rgba(19,36,31,.04)}
+}
