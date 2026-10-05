@@ -1,4 +1,4 @@
-const CACHE_NAME = "afro-sport-shell-v1";
+const CACHE_NAME = "afro-sport-shell-v2";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -8,7 +8,8 @@ const APP_SHELL = [
   "./config.js",
   "./manifest.webmanifest",
   "./assets/pwa-icon-192.svg",
-  "./assets/pwa-icon-512.svg"
+  "./assets/pwa-icon-512.svg",
+  "./assets/afro-sport-logo.jpg"
 ];
 
 self.addEventListener("install", event => {
