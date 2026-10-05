@@ -221,7 +221,7 @@ document.getElementById("save-result").onclick=async e=>{
   const home=Number(document.getElementById("home-score").value),away=Number(document.getElementById("away-score").value);
   const {error}=await sb.from("matches").update({home_score:home,away_score:away,status:"completed",result_entered_at:new Date().toISOString(),updated_at:new Date().toISOString()}).eq("id",selectedMatchId);
   button.disabled=false;button.textContent="Hifadhi Matokeo";
-  if(error){message.textContent="Imeshindikana kuhifadhi matokeo.";return;}
+  if(error){console.error("saveResult:",error);message.textContent="Imeshindikana kuhifadhi matokeo: "+(error.message||error.code||"Hitilafu");return;}
   document.getElementById("result-panel").hidden=true;document.getElementById("result-form").reset();selectedMatchId=null;
   document.getElementById("page-message").textContent="Matokeo yamehifadhiwa. Mechi imekamilika.";
   await loadMatches();
