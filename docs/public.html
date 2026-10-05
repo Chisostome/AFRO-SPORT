@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="sw"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="sw"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#0b0b0b"><meta name="apple-mobile-web-app-title" content="AFRO SPORT"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="format-detection" content="telephone=no">
 <title>AFRO SPORT — Michezo ya Afro</title><link rel="stylesheet" href="./styles.css?v=20261002-12">  <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./assets/afro-sport-logo.jpg" type="image/jpeg">
   <link rel="apple-touch-icon" href="./assets/afro-sport-logo.jpg">
-  <meta name="theme-color" content="#0b0b0b">\n<meta name="mobile-web-app-capable" content="yes">\n<meta name="apple-mobile-web-app-capable" content="yes">\n<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="mobile-web-app-capable" content="yes">
 </head>
 <body class="public-body">
 <header class="public-header"><a class="public-brand" href="./public.html"><img class="brand-logo public-logo" src="./assets/afro-sport-logo.jpg" alt="AFRO SPORT"><span><strong>AFRO SPORT</strong><small>MICHEZO YA AFRO</small></span></a><nav><a class="active" href="./public.html">Nyumbani</a><a href="#mechi">Mechi</a><a href="#msimamo">Msimamo</a><a href="#wafungaji">Wafungaji</a></nav><a id="account-link" class="admin-link" href="./auth.html">Ingia / Jisajili</a></header>
@@ -13,7 +13,7 @@
 <section class="public-section"><div class="section-head"><div><p class="eyebrow">RATIBA</p><h2>Mechi zijazo</h2></div></div><div id="upcoming-matches" class="public-grid"><p class="public-empty">Inapakia...</p></div></section>
 <section id="msimamo" class="public-section"><div class="section-head"><div><p class="eyebrow">MSIMAMO</p><h2>Misimamo ya mashindano</h2></div></div><div id="standings-list" class="public-stack"><p class="public-empty">Inapakia...</p></div></section>
 <section id="wafungaji" class="public-section"><div class="section-head"><div><p class="eyebrow">WAFUNGAJI BORA</p><h2>Wafungaji Bora</h2></div></div><div id="scorers-list" class="public-stack"><p class="public-empty">Inapakia...</p></div></section>
-</main><footer class="public-footer">© AFRO SPORT — MICHEZO YA AFRO</footer>
+</main><nav class="mobile-app-nav" aria-label="AFRO SPORT"><a class="active" href="./public.html"><span>⌂</span><small>Nyumbani</small></a><a href="#mechi"><span>⚽</span><small>Mechi</small></a><a href="#msimamo"><span>▤</span><small>Msimamo</small></a><a href="#wafungaji"><span>★</span><small>Wafungaji</small></a><a href="./auth.html"><span>●</span><small>Akaunti</small></a></nav><footer class="public-footer">© AFRO SPORT — MICHEZO YA AFRO</footer>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./config.js"></script>
 <script>
 const {createClient}=window.supabase;const sb=createClient(window.AFRO_SUPABASE_URL,window.AFRO_SUPABASE_PUBLISHABLE_KEY);const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));const now=new Date(),start=new Date(now.getFullYear(),now.getMonth(),now.getDate()),end=new Date(start);end.setDate(end.getDate()+1);
