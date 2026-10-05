@@ -33,7 +33,7 @@
 </header>
 
 <section class="page-intro">
-  <div><p class="eyebrow">RATIBA</p><h2>Simamia mechi</h2><p>Kwa Ligi Kuu hatua ya ligi huchaguliwa moja kwa moja. Kisha weka timu, tarehe, muda na uwanja.</p></div>
+  <div><p class="eyebrow">RATIBA</p><h2>Simamia mechi</h2><p>Chagua ligi na hatua. Mfumo hubadilisha taarifa za mechi kulingana na aina ya hatua: ligi, hatua ya makundi au mtoano.</p></div>
   <button class="primary-button" id="show-match-form">+ Ongeza Mechi</button>
 </section>
 
@@ -55,10 +55,15 @@
     <label for="match-venue">Uwanja <span class="optional">(hiari)</span></label>
     <input id="match-venue" placeholder="Mfano: Benjamin Mkapa Stadium">
 
-    <label for="match-round">Mzunguko <span class="optional">(hiari)</span></label>
+    <label for="match-round" id="match-round-label">Mzunguko <span class="optional">(hiari)</span></label>
     <input id="match-round" placeholder="Mfano: 1, 2, 3...">
 
-    <div id="league-round-note" class="optional">Ligi Kuu huchezwa nyumbani na ugenini; timu hukutana mara mbili, huku mwenyeji akibadilika.</div>
+    <div id="match-leg-wrap" hidden>
+      <label for="match-leg">Mguu</label>
+      <select id="match-leg"><option value="1">Leg 1</option><option value="2">Leg 2</option></select>
+    </div>
+
+    <div id="stage-format-note" class="optional"></div>
 
     <div class="form-actions">
       <button type="button" class="secondary-button" id="cancel-match">Ghairi</button>
@@ -96,6 +101,21 @@ const sb=createClient(window.AFRO_SUPABASE_URL,window.AFRO_SUPABASE_PUBLISHABLE_
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
 let stages=[]; let selectedMatchId=null;
 
+function updateStageFields(stage){
+  const label=document.getElementById("match-round-label"),input=document.getElementById("match-round"),legWrap=document.getElementById("match-leg-wrap"),note=document.getElementById("stage-format-note");
+  if(!stage){label.innerHTML="Mzunguko <span class=\"optional\">(hiari)</span>";input.placeholder="Mfano: 1, 2, 3...";legWrap.hidden=true;note.textContent="";return;}
+  if(stage.stage_type==="league"){
+    label.innerHTML="Mzunguko <span class=\"optional\">(hiari)</span>";input.placeholder="Mfano: 1, 2, 3...";legWrap.hidden=true;
+    note.textContent="Ligi yoyote hutumia mfumo wa nyumbani na ugenini; timu hukutana mara mbili. Mguu wa mechi unasimamiwa na mfumo.";
+  }else if(stage.stage_type==="group_stage"){
+    label.innerHTML="Mzunguko / Group <span class=\"optional\">(hiari)</span>";input.placeholder="Mfano: A, B au 1, 2, 3...";legWrap.hidden=Number(stage.legs||1)<=1;
+    note.textContent=Number(stage.legs||1)>1?"Hatua ya makundi inaweza kuwa na mechi za nyumbani na ugenini.":"Hatua ya makundi ya mguu mmoja.";
+  }else{
+    label.innerHTML="Raundi <span class=\"optional\">(hiari)</span>";input.placeholder="Mfano: Nusu Fainali, Fainali...";legWrap.hidden=Number(stage.legs||1)<=1;
+    note.textContent=Number(stage.legs||1)>1?"Hatua hii ni ya mtoano wa miguu miwili: Leg 1 na Leg 2.":"Hatua hii ni ya mtoano wa mguu mmoja.";
+  }
+}
+
 async function requireAdmin(){
   const {data:{user}}=await sb.auth.getUser();
   if(!user){location.href="./index.html";return false;}
@@ -115,7 +135,7 @@ async function loadStages(){
   const currentLeagueStage=stages.find(s=>s.is_current&&s.stage_type==="league")||stages.find(s=>s.stage_type==="league")||stages[0];
   document.getElementById("match-stage").innerHTML='<option value="">Chagua hatua</option>'+
     stages.map(s=>'<option value="'+s.id+'"'+(s.id===currentLeagueStage?.id?' selected':'')+'>'+esc(s.seasons?.leagues?.name||"Ligi")+" — "+esc(s.seasons?.name||"Msimu")+" — "+esc(s.name)+'</option>').join("");
-  if(currentLeagueStage) loadStageTeams(currentLeagueStage.id);
+  if(currentLeagueStage){ loadStageTeams(currentLeagueStage.id); updateStageFields(currentLeagueStage); }
 }
 
 async function loadStageTeams(stageId){
@@ -196,9 +216,7 @@ document.addEventListener("click",e=>{const b=e.target.closest(".result-button")
 
 document.getElementById("match-stage").addEventListener("change",e=>{
   const stage=stages.find(s=>s.id===e.target.value);
-  document.getElementById("league-round-note").textContent=stage?.stage_type==="league"
-    ?"Ligi Kuu huchezwa nyumbani na ugenini; timu hukutana mara mbili, huku mwenyeji akibadilika."
-    :"Kwa hatua za mtoano, mfumo wa mguu hutumika pale inapohitajika.";
+  updateStageFields(stage);
   loadStageTeams(e.target.value);
 });
 
@@ -225,7 +243,7 @@ document.getElementById("match-form").onsubmit=async e=>{
     kickoff_at:new Date(kickoff).toISOString(),
     venue:document.getElementById("match-venue").value.trim()||null,
     round_name:document.getElementById("match-round").value.trim()||null,
-    leg:1
+    leg:Number(document.getElementById("match-leg").value||1)
   });
   button.disabled=false;button.textContent="Hifadhi Mechi";
   if(error){
@@ -250,9 +268,7 @@ document.getElementById("logout").onclick=async()=>{await sb.auth.signOut();loca
       await loadStages();
       const currentStage=document.getElementById("match-stage").value;
       const stage=stages.find(s=>s.id===currentStage);
-      document.getElementById("league-round-note").textContent=stage?.stage_type==="league"
-        ?"Ligi Kuu huchezwa nyumbani na ugenini; timu hukutana mara mbili, huku mwenyeji akibadilika."
-        :"Kwa hatua za mtoano, mfumo wa mguu hutumika pale inapohitajika.";
+      updateStageFields(stage);
       await loadMatches();
     }
   }catch(error){
