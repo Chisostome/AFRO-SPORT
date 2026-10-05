@@ -180,14 +180,15 @@
       }
 
       list.innerHTML = leagues.map((league) => `
-        <button class="league-row ${selectedLeague?.id === league.id ? "selected" : ""}" data-id="${league.id}">
+        <div class="league-row ${selectedLeague?.id === league.id ? "selected" : ""}" data-id="${league.id}">
           <span class="league-icon">${league.logo_url ? `<img src="${escapeHtml(league.logo_url)}" alt="">` : "🏆"}</span>
           <span class="league-info">
             <strong>${escapeHtml(league.name)}</strong>
             <small>${escapeHtml(typeLabels[league.competition_type] || "Nyingine")}${league.country ? " · " + escapeHtml(league.country) : ""}</small>
           </span>
           <span class="status-dot ${league.is_active ? "on" : ""}" title="${league.is_active ? "Hai" : "Haijatumika"}"></span>
-        </button>
+          <a class="secondary-button" href="./league.html?id=${league.id}" onclick="event.stopPropagation()">Fungua</a>
+        </div>
       `).join("");
 
       list.querySelectorAll(".league-row").forEach((row) => {
