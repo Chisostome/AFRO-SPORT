@@ -19,7 +19,7 @@
     <a href="./teams.html">⚽ <span>Timu</span></a>
     <a href="./players.html">👤 <span>Wachezaji</span></a>
     <a class="active" href="./matches.html">📅 <span>Mechi</span></a>
-    <a href="#" data-coming="Msimamo">📊 <span>Msimamo</span></a>
+    <a href="./standings.html">📊 <span>Msimamo</span></a>
     <a href="./scorers.html">🥇 <span>Wafungaji Bora</span></a>
     <a href="./stats.html">📈 <span>Takwimu</span></a>
   </nav>
@@ -33,15 +33,15 @@
 </header>
 
 <section class="page-intro">
-  <div><p class="eyebrow">RATIBA</p><h2>Simamia mechi</h2><p>Chagua hatua, kisha weka timu, tarehe, muda, uwanja na mguu wa mechi.</p></div>
+  <div><p class="eyebrow">RATIBA</p><h2>Simamia mechi</h2><p>Kwa Ligi Kuu hatua ya ligi huchaguliwa moja kwa moja. Kisha weka timu, tarehe, muda na uwanja.</p></div>
   <button class="primary-button" id="show-match-form">+ Ongeza Mechi</button>
 </section>
 
 <section class="panel form-panel" id="match-form-panel" hidden>
   <div class="panel-head"><div><p class="eyebrow">MPYA</p><h3>Ongeza Mechi</h3></div></div>
   <form id="match-form" class="admin-form">
-    <label for="match-stage">Hatua</label>
-    <select id="match-stage" required><option value="">Chagua hatua</option></select>
+    <label for="match-stage">Ligi / Hatua</label>
+    <select id="match-stage" required><option value="">Inapakia ligi...</option></select><small class="optional">Ligi Kuu hutumia hatua yake ya ligi moja kwa moja.</small>
 
     <label for="match-home">Timu ya nyumbani</label>
     <select id="match-home" required><option value="">Chagua timu</option></select>
@@ -109,12 +109,14 @@ async function requireAdmin(){
 
 async function loadStages(){
   const {data,error}=await sb.from("competition_stages")
-    .select("id,name,stage_type,legs,seasons!inner(id,name,leagues!inner(name))")
+    .select("id,name,stage_type,legs,is_current,seasons!inner(id,name,leagues!inner(name))")
     .order("created_at",{ascending:false});
   if(error){document.getElementById("match-message").textContent="Imeshindikana kupakia hatua.";return;}
   stages=data||[];
+  const currentLeagueStage=stages.find(s=>s.is_current&&s.stage_type==="league")||stages.find(s=>s.stage_type==="league")||stages[0];
   document.getElementById("match-stage").innerHTML='<option value="">Chagua hatua</option>'+
-    stages.map(s=>'<option value="'+s.id+'">'+esc(s.seasons?.leagues?.name||"Ligi")+" — "+esc(s.seasons?.name||"Msimu")+" — "+esc(s.name)+'</option>').join("");
+    stages.map(s=>'<option value="'+s.id+'"'+(s.id===currentLeagueStage?.id?' selected':'')+'>'+esc(s.seasons?.leagues?.name||"Ligi")+" — "+esc(s.seasons?.name||"Msimu")+" — "+esc(s.name)+'</option>').join("");
+  if(currentLeagueStage) loadStageTeams(currentLeagueStage.id);
 }
 
 async function loadStageTeams(stageId){
@@ -193,7 +195,12 @@ document.getElementById("save-result").onclick=async e=>{
 };
 document.addEventListener("click",e=>{const b=e.target.closest(".result-button");if(!b)return;selectedMatchId=b.dataset.id;const m=window.__matches?.find(x=>x.id===selectedMatchId);if(m){document.getElementById("result-title").textContent="Matokeo: "+(m.home_team?.name||"Timu")+" dhidi ya "+(m.away_team?.name||"Timu");}document.getElementById("result-panel").hidden=false;document.getElementById("home-score").focus();});
 
-document.getElementById("match-stage").addEventListener("change",e=>loadStageTeams(e.target.value));
+document.getElementById("match-stage").addEventListener("change",e=>{
+  const stage=stages.find(s=>s.id===e.target.value);
+  document.getElementById("match-leg").value="1";
+  document.getElementById("match-leg").disabled=stage?.stage_type==="league";
+  loadStageTeams(e.target.value);
+});
 
 document.getElementById("show-match-form").onclick=()=>{
   document.getElementById("match-form-panel").hidden=false;
@@ -235,6 +242,9 @@ document.getElementById("logout").onclick=async()=>{await sb.auth.signOut();loca
   try{
     if(await requireAdmin()){
       await loadStages();
+      const currentStage=document.getElementById("match-stage").value;
+      const stage=stages.find(s=>s.id===currentStage);
+      document.getElementById("match-leg").disabled=stage?.stage_type==="league";
       await loadMatches();
     }
   }catch(error){
