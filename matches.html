@@ -238,18 +238,20 @@ document.getElementById("match-form").onsubmit=async e=>{
   button.disabled=true;button.textContent="Inahifadhi...";message.textContent="";
   const stageId=document.getElementById("match-stage").value;
   const kickoff=document.getElementById("match-kickoff").value;
-  const {error}=await sb.from("matches").insert({
-    stage_id:stageId,home_team_id:home,away_team_id:away,
-    kickoff_at:new Date(kickoff).toISOString(),
-    venue:document.getElementById("match-venue").value.trim()||null,
-    round_name:document.getElementById("match-round").value.trim()||null,
-    leg:Number(document.getElementById("match-leg").value||1)
+  const {error}=await sb.rpc("admin_create_match",{
+    p_stage_id:stageId,
+    p_home_team_id:home,
+    p_away_team_id:away,
+    p_kickoff_at:new Date(kickoff).toISOString(),
+    p_venue:document.getElementById("match-venue").value.trim()||null,
+    p_round_name:document.getElementById("match-round").value.trim()||null,
+    p_leg:Number(document.getElementById("match-leg").value||1)
   });
   button.disabled=false;button.textContent="Hifadhi Mechi";
   if(error){
   console.error("saveMatch:",error);
   if(error.code==="23503") message.textContent="Timu lazima ziwe zimewekwa kwenye hatua hiyo.";
-  else if(error.code==="42501") message.textContent="Huna ruhusa ya kuhifadhi mechi. Ingia kwa akaunti ya Admin/Super Admin.";
+  else if(error.code==="42501") message.textContent="Huna ruhusa ya kuhifadhi mechi. Akaunti hii haijatambuliwa kama Admin/Super Admin.";
   else message.textContent="Imeshindikana kuhifadhi mechi: "+(error.message||error.code||"Hitilafu isiyojulikana.");
   return;
 }
