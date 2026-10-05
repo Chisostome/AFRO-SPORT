@@ -228,7 +228,13 @@ document.getElementById("match-form").onsubmit=async e=>{
     leg:1
   });
   button.disabled=false;button.textContent="Hifadhi Mechi";
-  if(error){message.textContent=error.code==="23503"?"Timu lazima ziwe zimewekwa kwenye hatua hiyo.":"Imeshindikana kuhifadhi mechi.";return;}
+  if(error){
+  console.error("saveMatch:",error);
+  if(error.code==="23503") message.textContent="Timu lazima ziwe zimewekwa kwenye hatua hiyo.";
+  else if(error.code==="42501") message.textContent="Huna ruhusa ya kuhifadhi mechi. Ingia kwa akaunti ya Admin/Super Admin.";
+  else message.textContent="Imeshindikana kuhifadhi mechi: "+(error.message||error.code||"Hitilafu isiyojulikana.");
+  return;
+}
   document.getElementById("match-form").reset();
   document.getElementById("match-form-panel").hidden=true;
   document.getElementById("page-message").textContent="Mechi imehifadhiwa.";
