@@ -114,16 +114,43 @@ async function requireAdmin(){
 
 async function loadMatch(){
   if(!matchId){document.getElementById("match-card").innerHTML='<p class="empty-state error-state">Mechi haijapatikana.</p>';return false;}
-  const {data,error}=await sb.from("matches")
-    .select("id,kickoff_at,venue,round_name,leg,status,home_score,away_score,stage_id,home_team_id,away_team_id,home_team:teams!matches_home_team_id_fkey(id,name),away_team:teams!matches_away_team_id_fkey(id,name),competition_stages!inner(id,name,stage_type,seasons!inner(id,name,leagues!inner(name)))")
+
+  const {data:m,error}=await sb.from("matches")
+    .select("id,kickoff_at,venue,round_name,leg,status,home_score,away_score,stage_id,home_team_id,away_team_id")
     .eq("id",matchId).maybeSingle();
-  if(error||!data){document.getElementById("match-card").innerHTML='<p class="empty-state error-state">Imeshindikana kupakia mechi.</p>';return false;}
-  match=data;
+  if(error||!m){
+    console.error("loadMatch:",error);
+    document.getElementById("match-card").innerHTML='<p class="empty-state error-state">Imeshindikana kupakia mechi.</p>';
+    return false;
+  }
+
+  const [{data:stage,error:stageError},{data:teams,error:teamsError}]=await Promise.all([
+    sb.from("competition_stages")
+      .select("id,name,stage_type,seasons!inner(id,name,leagues!inner(name))")
+      .eq("id",m.stage_id).maybeSingle(),
+    sb.from("teams").select("id,name,short_name").in("id",[m.home_team_id,m.away_team_id])
+  ]);
+
+  if(stageError||teamsError||!stage){
+    console.error("loadMatch relations:",stageError||teamsError);
+    document.getElementById("match-card").innerHTML='<p class="empty-state error-state">Imeshindikana kupakia taarifa za timu au hatua ya mechi.</p>';
+    return false;
+  }
+
+  const teamMap={};
+  (teams||[]).forEach(t=>teamMap[t.id]=t);
+  match={...m,competition_stages:stage,home_team:teamMap[m.home_team_id]||null,away_team:teamMap[m.away_team_id]||null};
+
   const title=(match.home_team?.name||"Timu")+" dhidi ya "+(match.away_team?.name||"Timu");
   document.getElementById("page-title").textContent=title;
   const when=match.kickoff_at?new Date(match.kickoff_at).toLocaleString("sw-TZ",{dateStyle:"full",timeStyle:"short"}):"Muda haujawekwa";
   const score=match.status==="completed"&&match.home_score!==null?match.home_score+" - "+match.away_score:"vs";
-  document.getElementById("match-card").innerHTML='<div class="team-detail-card"><div class="team-hero"><div><p class="eyebrow">'+esc(match.competition_stages?.seasons?.leagues?.name||"Ligi")+'</p><h2>'+esc(match.home_team?.name||"Timu")+' <span>'+esc(score)+'</span> '+esc(match.away_team?.name||"Timu")+'</h2><p>'+esc(match.competition_stages?.seasons?.name||"")+' · '+esc(match.competition_stages?.name||"")+' · Leg '+esc(match.leg)+'</p></div></div><div class="detail-grid"><div><strong>Tarehe na muda</strong><span>'+esc(when)+'</span></div><div><strong>Uwanja</strong><span>'+esc(match.venue||"Haijawekwa")+'</span></div><div><strong>Raundi</strong><span>'+esc(match.round_name||"Haijawekwa")+'</span></div><div><strong>Hali</strong><span>'+esc(match.status)+'</span></div></div></div>';
+  const stageType=match.competition_stages?.stage_type;
+  const stageInfo=(match.competition_stages?.seasons?.name||"")+" · "+(match.competition_stages?.name||"");
+  const legInfo=stageType==="league"?"":(" · Leg "+match.leg);
+
+  document.getElementById("match-card").innerHTML='<div class="team-detail-card"><div class="team-hero"><div><p class="eyebrow">'+esc(match.competition_stages?.seasons?.leagues?.name||"Ligi")+'</p><h2>'+esc(match.home_team?.name||"Timu")+' <span>'+esc(score)+'</span> '+esc(match.away_team?.name||"Timu")+'</h2><p>'+esc(stageInfo)+esc(legInfo)+'</p></div></div><div class="detail-grid"><div><strong>Tarehe na muda</strong><span>'+esc(when)+'</span></div><div><strong>Uwanja</strong><span>'+esc(match.venue||"Haijawekwa")+'</span></div><div><strong>'+(stageType==="league"?"Mzunguko":"Raundi")+'</strong><span>'+esc(match.round_name||"Haijawekwa")+'</span></div><div><strong>Hali</strong><span>'+esc(match.status)+'</span></div></div></div>';
+
   await loadPlayers();
   await loadEvents();
   return true;
