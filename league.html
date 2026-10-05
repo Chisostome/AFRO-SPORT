@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="sw">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AFRO SPORT — Ligi</title>
+<link rel="stylesheet" href="./styles.css?v=20261005-1">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" href="./assets/afro-sport-logo.jpg" type="image/jpeg">
+<meta name="theme-color" content="#0b0b0b">
+<style>
+.league-hero{display:flex;justify-content:space-between;gap:20px;align-items:center}
+.league-brand{display:flex;align-items:center;gap:15px}.league-brand img{width:72px;height:72px;border-radius:16px;object-fit:cover}.league-brand .fallback{width:72px;height:72px;border-radius:16px;background:var(--green-soft);display:grid;place-items:center;font-size:32px}
+.league-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:16px}.league-stat{background:#fff;border:1px solid var(--line);border-radius:13px;padding:15px}.league-stat strong{display:block;font-size:22px}.league-stat span{font-size:10px;color:var(--muted);text-transform:uppercase;font-weight:800}
+.detail-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:20px;align-items:start}.filter-row{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0}.filter-row select{min-width:190px}
+.match-detail-row{display:flex;justify-content:space-between;gap:15px;align-items:center;border:1px solid var(--line);border-radius:12px;padding:12px;margin-top:8px;background:#fff}.match-detail-row strong,.match-detail-row small{display:block}.match-detail-row small{color:var(--muted);font-size:10px;margin-top:4px}.match-score{font-weight:900;font-size:15px;white-space:nowrap}.team-list{display:grid;gap:7px}.team-list .team-item{display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid #edf0f2;padding:9px 0;font-size:12px}.team-list .team-item:last-child{border-bottom:0}
+.mini-row{grid-template-columns:32px 1fr 48px 58px 48px}
+.info-lines{display:grid;gap:5px;color:var(--muted);font-size:11px}.info-lines strong{color:var(--text)}
+@media(max-width:900px){.detail-grid{grid-template-columns:1fr}.league-stats{grid-template-columns:repeat(2,1fr)}.league-hero{align-items:flex-start}}
+</style>
+</head>
+<body class="admin-body">
+<aside class="sidebar">
+<div class="sidebar-brand"><img class="brand-logo sidebar-logo" src="./assets/afro-sport-logo.jpg" alt="AFRO SPORT"><div><strong>AFRO SPORT</strong><span>MICHEZO YA AFRO</span></div></div>
+<nav class="admin-nav" aria-label="Menyu ya Admin">
+<a href="./dashboard.html">⌂ <span>Dashibodi</span></a><a class="active" href="./leagues.html">🏆 <span>Ligi</span></a><a href="./teams.html">⚽ <span>Timu</span></a><a href="./players.html">👤 <span>Wachezaji</span></a><a href="./matches.html">📅 <span>Mechi</span></a><a href="./standings.html">📊 <span>Msimamo</span></a><a href="./scorers.html">🥇 <span>Wafungaji Bora</span></a><a href="./stats.html">📈 <span>Takwimu</span></a>
+</nav><button class="logout-button" id="logout">Toka</button>
+</aside>
+<main class="admin-main">
+<header class="topbar"><div><p class="eyebrow">LIGI</p><h1 id="page-title">Inapakia...</h1></div><div class="admin-user"><strong id="role-label">Mtazamaji</strong><span id="user-email"></span></div></header>
+
+<section class="panel league-hero">
+<div class="league-brand"><div id="league-logo" class="fallback">🏆</div><div><p class="eyebrow" id="league-type">MASHINDANO</p><h2 id="league-name">Inapakia...</h2><p id="league-description">—</p></div></div>
+<a class="secondary-button" href="./leagues.html">← Ligi zote</a>
+</section>
+
+<section class="league-stats">
+<div class="league-stat"><strong id="stat-teams">0</strong><span>Timu</span></div><div class="league-stat"><strong id="stat-matches">0</strong><span>Mechi</span></div><div class="league-stat"><strong id="stat-completed">0</strong><span>Matokeo</span></div><div class="league-stat"><strong id="stat-upcoming">0</strong><span>Mechi zijazo</span></div>
+</section>
+
+<section class="panel">
+<div class="panel-head"><div><p class="eyebrow">MSIMU</p><h3>Taarifa za msimu</h3></div></div>
+<div class="filter-row"><select id="season-select"><option>Inapakia...</option></select><select id="stage-select"><option value="">Hatua zote</option></select></div>
+<div id="season-info" class="info-lines">—</div>
+</section>
+
+<div class="detail-grid">
+<section class="panel"><div class="panel-head"><div><p class="eyebrow">MECHI</p><h3>Mechi zote</h3></div><span class="count-badge" id="match-count">0</span></div><div id="matches-list"><p class="empty-state">Inapakia...</p></div></section>
+<section class="panel"><div class="panel-head"><div><p class="eyebrow">TIMU</p><h3>Timu zinazoshiriki</h3></div><span class="count-badge" id="team-count">0</span></div><div id="teams-list" class="team-list"><p class="empty-state">Inapakia...</p></div></section>
+</div>
+
+<div class="detail-grid">
+<section class="panel"><div class="panel-head"><div><p class="eyebrow">MSIMAMO</p><h3>Msimamo wa hatua</h3></div></div><div id="standings-list"><p class="empty-state">Inapakia...</p></div></section>
+<section class="panel"><div class="panel-head"><div><p class="eyebrow">WAFUNGAJI</p><h3>Wafungaji Bora</h3></div></div><div id="scorers-list"><p class="empty-state">Inapakia...</p></div></section>
+</div>
+<p id="page-message" class="message page-message"></p>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./config.js"></script>
+<script>
+const {createClient}=window.supabase;const sb=createClient(window.AFRO_SUPABASE_URL,window.AFRO_SUPABASE_PUBLISHABLE_KEY);
+const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
+const typeLabels={league:"Ligi",cup:"Kombe",playoff:"Playoff",champions_league:"Champions League",continental:"Mashindano ya Bara",national:"Mashindano ya Taifa",friendly:"Kirafiki",youth:"Vijana",women:"Wanawake",college:"Vyuo",other:"Nyingine"};
+const leagueId=new URLSearchParams(location.search).get("id");let league=null,seasons=[],stages=[],allMatches=[],stageTeams=[],standings=[],scorers=[];
+async function loadUser(){const {data:{user}}=await sb.auth.getUser();if(user){document.getElementById("user-email").textContent=user.email||"";const {data:r}=await sb.from("user_roles").select("role").eq("user_id",user.id).maybeSingle();if(r)document.getElementById("role-label").textContent=r.role==="super_admin"?"Super Admin":r.role==="admin"?"Admin":"Mtazamaji"}}
+function formatDate(v){return v?new Date(v).toLocaleString("sw-TZ",{dateStyle:"medium",timeStyle:"short"}):"Muda haujawekwa"}
+async function loadLeague(){if(!leagueId){document.getElementById("page-message").textContent="Ligi haijachaguliwa.";return}
+const {data,error}=await sb.from("leagues").select("id,name,country,logo_url,description,competition_type,is_active").eq("id",leagueId).maybeSingle();
+if(error||!data){document.getElementById("page-title").textContent="Ligi haijapatikana";document.getElementById("page-message").textContent="Imeshindikana kupakia taarifa za ligi.";return}league=data;
+document.title="AFRO SPORT — "+league.name;document.getElementById("page-title").textContent=league.name;document.getElementById("league-name").textContent=league.name;document.getElementById("league-type").textContent=typeLabels[league.competition_type]||"MASHINDANO";document.getElementById("league-description").textContent=league.description||[league.country,league.is_active?"Ligi hai":"Haijatumika"].filter(Boolean).join(" · ")||"—";
+if(league.logo_url)document.getElementById("league-logo").outerHTML='<img id="league-logo" src="'+esc(league.logo_url)+'" alt="" style="width:72px;height:72px;border-radius:16px;object-fit:cover">';
+const sr=await sb.from("seasons").select("id,name,start_date,end_date,is_current").eq("league_id",leagueId).order("start_date",{ascending:false,nullsFirst:false}).order("name",{ascending:false});seasons=sr.data||[];
+const select=document.getElementById("season-select");select.innerHTML=seasons.length?seasons.map(s=>'<option value="'+s.id+'">'+esc(s.name)+(s.is_current?" — Sasa":"")+"</option>").join(""):'<option value="">Hakuna msimu</option>';
+if(seasons.length){const current=seasons.find(s=>s.is_current)||seasons[0];select.value=current.id;await loadSeason(current.id)}
+}
+async function loadSeason(seasonId){
+const season=seasons.find(s=>s.id===seasonId);if(!season)return;document.getElementById("season-info").innerHTML='<strong>'+esc(season.name)+'</strong><span>'+esc(season.start_date||"—")+" → "+esc(season.end_date||"—")+"</span>";
+const sr=await sb.from("competition_stages").select("id,name,stage_type,legs,is_current").eq("season_id",seasonId).order("created_at",{ascending:true});stages=sr.data||[];
+const stageSelect=document.getElementById("stage-select");stageSelect.innerHTML='<option value="">Hatua zote</option>'+stages.map(s=>'<option value="'+s.id+'">'+esc(s.name)+"</option>").join("");
+const stageIds=stages.map(s=>s.id);
+if(!stageIds.length){allMatches=[];stageTeams=[];standings=[];scorers=[];renderAll();return}
+const [tm,sm,cm]=await Promise.all([
+sb.from("stage_teams").select("stage_id,team_id,teams(id,name,short_name)").in("stage_id",stageIds),
+sb.from("standings_calculated").select("stage_id,team_id,matches_played,wins,draws,losses,goals_for,goals_against,gd,points,teams(name,short_name)").in("stage_id",stageIds).order("points",{ascending:false}).order("gd",{ascending:false}),
+sb.from("top_scorers_calculated").select("stage_id,player_id,first_name,last_name,team_name,goals").in("stage_id",stageIds).order("goals",{ascending:false})
+]);
+stageTeams=tm.data||[];standings=sm.data||[];scorers=cm.data||[];
+const mr=await sb.from("matches").select("id,kickoff_at,venue,round_name,leg,status,home_score,away_score,home_team_id,away_team_id,stage_id").in("stage_id",stageIds).order("kickoff_at",{ascending:true,nullsFirst:false});allMatches=mr.data||[];
+renderAll()
+}
+function renderAll(){
+const selected=document.getElementById("stage-select").value;const matches=selected?allMatches.filter(m=>m.stage_id===selected):allMatches;const teams=stageTeams.filter(t=>!selected||t.stage_id===selected);const rows=standings.filter(r=>!selected||r.stage_id===selected);const top=scorers.filter(r=>!selected||r.stage_id===selected);
+const teamMap={};teams.forEach(x=>teamMap[x.team_id]=x.teams);const stageMap={};stages.forEach(s=>stageMap[s.id]=s.name);
+const uniqueTeams=Object.values(teamMap);document.getElementById("stat-teams").textContent=uniqueTeams.length;document.getElementById("stat-matches").textContent=matches.length;document.getElementById("stat-completed").textContent=matches.filter(m=>m.status==="completed").length;document.getElementById("stat-upcoming").textContent=matches.filter(m=>!["completed","cancelled"].includes(m.status)).length;document.getElementById("team-count").textContent=uniqueTeams.length;document.getElementById("match-count").textContent=matches.length;
+document.getElementById("teams-list").innerHTML=uniqueTeams.length?uniqueTeams.map(t=>'<div class="team-item"><strong>'+esc(t?.name||"Timu")+'</strong><span>'+esc(t?.short_name||"")+'</span></div>').join(""):'<p class="empty-state">Hakuna timu kwenye hatua hii.</p>';
+document.getElementById("matches-list").innerHTML=matches.length?matches.map(m=>{const h=teamMap[m.home_team_id],a=teamMap[m.away_team_id];const score=m.status==="completed"&&m.home_score!==null&&m.away_score!==null?m.home_score+" - "+m.away_score:"vs";return '<div class="match-detail-row"><div><strong>'+esc(h?.name||"Timu")+" "+score+" "+esc(a?.name||"Timu")+'</strong><small>'+esc(stageMap[m.stage_id]||"Hatua")+" · "+esc(formatDate(m.kickoff_at))+(m.venue?" · "+esc(m.venue):"")+(m.round_name?" · "+esc(m.round_name):"")+(m.leg?" · Leg "+m.leg:"")+'</small></div><a class="secondary-button" href="./match.html?id='+m.id+'">Fungua</a></div>'}).join(""):'<p class="empty-state">Hakuna mechi kwenye msimu huu.</p>';
+document.getElementById("standings-list").innerHTML=rows.length?'<div class="mini-table"><div class="mini-row head"><span>#</span><span>Timu</span><span>MP</span><span>GD</span><span>PTS</span></div>'+rows.map((r,i)=>'<div class="mini-row"><span>'+(i+1)+'</span><strong>'+esc(r.teams?.name||"Timu")+'</strong><span>'+r.matches_played+'</span><span>'+esc(r.gd)+'</span><strong>'+r.points+'</strong></div>').join("")+'</div>':'<p class="empty-state">Hakuna msimamo uliopatikana.</p>';
+const sorted=[...top].sort((a,b)=>Number(b.goals||0)-Number(a.goals||0)).slice(0,10);document.getElementById("scorers-list").innerHTML=sorted.length?'<div class="mini-table">'+sorted.map((r,i)=>'<div class="mini-row" style="grid-template-columns:28px 1fr 85px 35px"><span>'+(i+1)+'</span><strong>'+esc(((r.first_name||"")+" "+(r.last_name||"")).trim())+'</strong><span>'+esc(r.team_name||"")+'</span><strong>'+r.goals+'</strong></div>').join("")+'</div>':'<p class="empty-state">Hakuna magoli yaliyorekodiwa.</p>';
+}
+document.getElementById("season-select").addEventListener("change",e=>loadSeason(e.target.value));
+document.getElementById("stage-select").addEventListener("change",renderAll);
+document.getElementById("logout").addEventListener("click",async()=>{await sb.auth.signOut();location.href="./index.html"});
+(async()=>{await loadUser();await loadLeague()})().catch(e=>{console.error(e);document.getElementById("page-message").textContent="Imeshindikana kupakia taarifa za ligi."});
+</script>
+</body></html>
