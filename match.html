@@ -151,9 +151,21 @@ async function loadMatch(){
 
   document.getElementById("match-card").innerHTML='<div class="team-detail-card"><div class="team-hero"><div><p class="eyebrow">'+esc(match.competition_stages?.seasons?.leagues?.name||"Ligi")+'</p><h2>'+esc(match.home_team?.name||"Timu")+' <span>'+esc(score)+'</span> '+esc(match.away_team?.name||"Timu")+'</h2><p>'+esc(stageInfo)+esc(legInfo)+'</p></div></div><div class="detail-grid"><div><strong>Tarehe na muda</strong><span>'+esc(when)+'</span></div><div><strong>Uwanja</strong><span>'+esc(match.venue||"Haijawekwa")+'</span></div><div><strong>'+(stageType==="league"?"Mzunguko":"Raundi")+'</strong><span>'+esc(match.round_name||"Haijawekwa")+'</span></div><div><strong>Hali</strong><span>'+esc(match.status)+'</span></div></div></div>';
 
+  loadEventTeamOptions();
   await loadPlayers();
   await loadEvents();
   return true;
+}
+
+function loadEventTeamOptions(){
+  const select=document.getElementById("event-team");
+  const teams=[
+    {id:match.home_team_id,team:match.home_team},
+    {id:match.away_team_id,team:match.away_team}
+  ].filter(x=>x.team);
+  select.innerHTML='<option value="">Chagua timu</option>'+
+    teams.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.team.name||x.team.short_name||"Timu")+'</option>').join("");
+  document.getElementById("event-player").innerHTML='<option value="">Chagua mchezaji</option>';
 }
 
 async function loadPlayers(){
