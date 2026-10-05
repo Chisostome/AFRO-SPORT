@@ -171,30 +171,44 @@ function renderMatches(rows){
 }
 
 async function loadMatches(){
+  const list=document.getElementById("match-list");
   const {data,error}=await sb.from("matches")
-    .select("id,kickoff_at,venue,round_name,leg,status,home_score,away_score,home_team_id,away_team_id,stage_id,competition_stages!inner(name,seasons!inner(name,leagues!inner(name)))")
+    .select("id,kickoff_at,venue,round_name,leg,status,home_score,away_score,home_team_id,away_team_id,stage_id")
     .order("kickoff_at",{ascending:true,nullsFirst:false});
   if(error){
     console.error("loadMatches:",error);
-    document.getElementById("match-list").innerHTML='<p class="empty-state error-state">Imeshindikana kupakia mechi.</p>';
+    list.innerHTML='<p class="empty-state error-state">Imeshindikana kupakia mechi: '+esc(error.message||error.code||"Hitilafu")+'</p>';
     return;
   }
 
-  const teamIds=[...new Set((data||[]).flatMap(m=>[m.home_team_id,m.away_team_id]).filter(Boolean))];
-  let teamMap={};
+  const rows=data||[];
+  const stageIds=[...new Set(rows.map(m=>m.stage_id).filter(Boolean))];
+  const teamIds=[...new Set(rows.flatMap(m=>[m.home_team_id,m.away_team_id]).filter(Boolean))];
+
+  let stageMap={}, teamMap={};
+  if(stageIds.length){
+    const {data:stageData,error:stageError}=await sb.from("competition_stages")
+      .select("id,name,stage_type,seasons(name,leagues(name))")
+      .in("id",stageIds);
+    if(stageError) console.error("loadMatchStages:",stageError);
+    (stageData||[]).forEach(s=>{stageMap[s.id]=s;});
+  }
   if(teamIds.length){
-    const {data:teams,error:teamError}=await sb.from("teams").select("id,name,short_name").in("id",teamIds);
-    if(teamError){console.error("loadMatchTeams:",teamError);}
+    const {data:teams,error:teamError}=await sb.from("teams")
+      .select("id,name,short_name")
+      .in("id",teamIds);
+    if(teamError) console.error("loadMatchTeams:",teamError);
     (teams||[]).forEach(t=>{teamMap[t.id]=t;});
   }
 
-  const rows=(data||[]).map(m=>({
+  const hydrated=rows.map(m=>({
     ...m,
     home_team:teamMap[m.home_team_id]||null,
-    away_team:teamMap[m.away_team_id]||null
+    away_team:teamMap[m.away_team_id]||null,
+    competition_stages:stageMap[m.stage_id]||null
   }));
-  window.__matches=rows;
-  renderMatches(rows);
+  window.__matches=hydrated;
+  renderMatches(hydrated);
 }
 
 
