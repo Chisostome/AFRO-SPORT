@@ -55,11 +55,10 @@
     <label for="match-venue">Uwanja <span class="optional">(hiari)</span></label>
     <input id="match-venue" placeholder="Mfano: Benjamin Mkapa Stadium">
 
-    <label for="match-round">Raundi <span class="optional">(hiari)</span></label>
-    <input id="match-round" placeholder="Mfano: Nusu Fainali">
+    <label for="match-round">Mzunguko <span class="optional">(hiari)</span></label>
+    <input id="match-round" placeholder="Mfano: 1, 2, 3...">
 
-    <label for="match-leg">Mguu</label>
-    <select id="match-leg"><option value="1">Leg 1</option><option value="2">Leg 2</option></select>
+    <div id="league-round-note" class="optional">Ligi Kuu huchezwa nyumbani na ugenini; timu hukutana mara mbili, huku mwenyeji akibadilika.</div>
 
     <div class="form-actions">
       <button type="button" class="secondary-button" id="cancel-match">Ghairi</button>
@@ -147,7 +146,7 @@ function renderMatches(rows){
   list.innerHTML=rows.map(m=>{
     const when=m.kickoff_at?new Date(m.kickoff_at).toLocaleString("sw-TZ",{dateStyle:"medium",timeStyle:"short"}):"Muda haujawekwa";
     const score=m.status==="completed"&&m.home_score!==null&&m.away_score!==null?m.home_score+" - "+m.away_score:"vs";
-    return '<div class="stage-team-row"><div><strong>'+esc(m.home_team?.name||"Timu")+" "+score+" "+esc(m.away_team?.name||"Timu")+'</strong><small>'+esc(m.competition_stages?.seasons?.leagues?.name||"Ligi")+" · "+esc(m.competition_stages?.name||"Hatua")+" · "+esc(when)+(m.round_name?" · "+esc(m.round_name):"")+" · Leg "+esc(m.leg)+'</small></div><div class="match-row-actions"><span class="count-badge">'+esc(m.status)+'</span>'+'<a class="secondary-button" href="./match.html?id='+m.id+'">Fungua</a>'+(m.status!=="completed"&&m.status!=="cancelled"?'<button class="secondary-button result-button" data-id="'+m.id+'">Ingiza Matokeo</button>':"")+'</div></div>';
+    return '<div class="stage-team-row"><div><strong>'+esc(m.home_team?.name||"Timu")+" "+score+" "+esc(m.away_team?.name||"Timu")+'</strong><small>'+esc(m.competition_stages?.seasons?.leagues?.name||"Ligi")+" · "+esc(m.competition_stages?.name||"Hatua")+" · "+esc(when)+(m.round_name?" · Mzunguko "+esc(m.round_name):"")+'</small></div><div class="match-row-actions"><span class="count-badge">'+esc(m.status)+'</span>'+'<a class="secondary-button" href="./match.html?id='+m.id+'">Fungua</a>'+(m.status!=="completed"&&m.status!=="cancelled"?'<button class="secondary-button result-button" data-id="'+m.id+'">Ingiza Matokeo</button>':"")+'</div></div>';
   }).join("");
 }
 
@@ -197,8 +196,9 @@ document.addEventListener("click",e=>{const b=e.target.closest(".result-button")
 
 document.getElementById("match-stage").addEventListener("change",e=>{
   const stage=stages.find(s=>s.id===e.target.value);
-  document.getElementById("match-leg").value="1";
-  document.getElementById("match-leg").disabled=stage?.stage_type==="league";
+  document.getElementById("league-round-note").textContent=stage?.stage_type==="league"
+    ?"Ligi Kuu huchezwa nyumbani na ugenini; timu hukutana mara mbili, huku mwenyeji akibadilika."
+    :"Kwa hatua za mtoano, mfumo wa mguu hutumika pale inapohitajika.";
   loadStageTeams(e.target.value);
 });
 
@@ -225,7 +225,7 @@ document.getElementById("match-form").onsubmit=async e=>{
     kickoff_at:new Date(kickoff).toISOString(),
     venue:document.getElementById("match-venue").value.trim()||null,
     round_name:document.getElementById("match-round").value.trim()||null,
-    leg:Number(document.getElementById("match-leg").value)
+    leg:1
   });
   button.disabled=false;button.textContent="Hifadhi Mechi";
   if(error){message.textContent=error.code==="23503"?"Timu lazima ziwe zimewekwa kwenye hatua hiyo.":"Imeshindikana kuhifadhi mechi.";return;}
@@ -244,7 +244,9 @@ document.getElementById("logout").onclick=async()=>{await sb.auth.signOut();loca
       await loadStages();
       const currentStage=document.getElementById("match-stage").value;
       const stage=stages.find(s=>s.id===currentStage);
-      document.getElementById("match-leg").disabled=stage?.stage_type==="league";
+      document.getElementById("league-round-note").textContent=stage?.stage_type==="league"
+        ?"Ligi Kuu huchezwa nyumbani na ugenini; timu hukutana mara mbili, huku mwenyeji akibadilika."
+        :"Kwa hatua za mtoano, mfumo wa mguu hutumika pale inapohitajika.";
       await loadMatches();
     }
   }catch(error){
