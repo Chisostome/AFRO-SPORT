@@ -46,7 +46,7 @@
         <h1>Admins</h1>
       </div>
       <div class="admin-user">
-        <strong>Super Admin</strong>
+        <strong id="role-label">Admin</strong>
         <span id="user-email"></span>
       </div>
     </header>
@@ -183,11 +183,11 @@
       const { data: { user } } = await sb.auth.getUser();
       if (!user) { window.location.href = "./admin.html"; return; }
       currentUserId = user.id;
-      document.getElementById("user-email").textContent = user.email || "";
+      document.getElementById("user-email").textContent = user.email || "";\n      document.getElementById("role-label").textContent = role?.role === "super_admin" ? "Super Admin" : "Admin";
 
       const { data: role } = await sb.from("user_roles").select("role").eq("user_id", user.id).maybeSingle();
       const { data: profile } = await sb.from("profiles").select("is_active").eq("user_id", user.id).maybeSingle();
-      if (role?.role !== "super_admin" || profile?.is_active === false) {
+      if (!["super_admin", "admin"].includes(role?.role) || profile?.is_active === false) {
         window.location.href = "./dashboard.html";
         return;
       }
