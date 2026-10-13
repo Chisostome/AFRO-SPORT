@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="sw"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#0b0b0b"><meta name="apple-mobile-web-app-title" content="AFRO SPORT"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="format-detection" content="telephone=no">
-<title>AFRO SPORT — Michezo ya Afro</title><link rel="stylesheet" href="./styles.css?v=20261002-12">  <link rel="manifest" href="./manifest.webmanifest">
+<title>AFRO SPORT — Michezo ya Afro</title><link rel="stylesheet" href="./styles.css?v=20261013-1">  <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./assets/afro-sport-logo.jpg" type="image/jpeg">
   <link rel="apple-touch-icon" href="./assets/afro-sport-logo.jpg">
   <meta name="mobile-web-app-capable" content="yes">
@@ -13,7 +13,7 @@
 <section class="public-section"><div class="section-head"><div><p class="eyebrow">RATIBA</p><h2>Mechi zijazo</h2></div></div><div id="upcoming-matches" class="public-grid"><p class="public-empty">Inapakia...</p></div></section>
 <section id="msimamo" class="public-section"><div class="section-head"><div><p class="eyebrow">MSIMAMO</p><h2>Misimamo ya mashindano</h2></div></div><div id="standings-list" class="public-stack"><p class="public-empty">Inapakia...</p></div></section>
 <section id="wafungaji" class="public-section"><div class="section-head"><div><p class="eyebrow">WAFUNGAJI BORA</p><h2>Wafungaji Bora</h2></div></div><div id="scorers-list" class="public-stack"><p class="public-empty">Inapakia...</p></div></section>
-</main><nav class="mobile-app-nav" aria-label="AFRO SPORT"><a class="active" href="./public.html"><span>⌂</span><small>Nyumbani</small></a><a href="#mechi"><span>⚽</span><small>Mechi</small></a><a href="#msimamo"><span>▤</span><small>Msimamo</small></a><a href="#wafungaji"><span>★</span><small>Wafungaji</small></a><a href="./auth.html"><span>●</span><small>Akaunti</small></a></nav><footer class="public-footer">© AFRO SPORT — MICHEZO YA AFRO</footer>
+</main><nav class="mobile-app-nav" aria-label="AFRO SPORT"><a class="active" href="./public.html"><span>⌂</span><small>Nyumbani</small></a><a href="#mechi"><span>⚽</span><small>Mechi</small></a><a href="#msimamo"><span>▤</span><small>Msimamo</small></a><a href="#wafungaji"><span>★</span><small>Wafungaji</small></a><a id="mobile-account-link" href="./auth.html"><span>●</span><small>Akaunti</small></a></nav><footer class="public-footer">© AFRO SPORT — MICHEZO YA AFRO</footer>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./config.js"></script>
 <script>
 const {createClient}=window.supabase;const sb=createClient(window.AFRO_SUPABASE_URL,window.AFRO_SUPABASE_PUBLISHABLE_KEY);const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));const now=new Date(),start=new Date(now.getFullYear(),now.getMonth(),now.getDate()),end=new Date(start);end.setDate(end.getDate()+1);
@@ -23,7 +23,24 @@ async function loadStandings(){const {data,error}=await sb.from("standings_calcu
 async function loadScorers(){const {data,error}=await sb.from("top_scorers_calculated").select("player_id,first_name,last_name,team_name,goals,stage_id").order("goals",{ascending:false}).limit(10);const box=document.getElementById("scorers-list");if(error){box.innerHTML='<p class="public-empty">Imeshindikana kupakia wafungaji.</p>';return}box.innerHTML=data?.length?'<div class="public-card"><div class="mini-table">'+data.map((r,i)=>'<div class="mini-row scorer-row"><span>'+ (i+1) +'</span><strong>'+esc((r.first_name||"")+" "+(r.last_name||""))+'</strong><span>'+esc(r.team_name||"")+'</span><strong>'+r.goals+' G</strong></div>').join("")+'</div></div>':'<p class="public-empty">Hakuna magoli yaliyorekodiwa bado.</p>'}
 Promise.all([loadMatches(),loadStandings(),loadScorers()]).catch(console.error);
 </script><script>
-(async()=>{const link=document.getElementById("account-link");if(!link)return;const {data}=await sb.auth.getSession();if(data.session){link.textContent="Toka";link.href="#";link.onclick=async e=>{e.preventDefault();await sb.auth.signOut();location.reload()}}})();
+(async()=>{
+  const desktopLink=document.getElementById("account-link");
+  const mobileLink=document.getElementById("mobile-account-link");
+  const {data:{session}}=await sb.auth.getSession();
+  if(!session)return;
+  if(desktopLink){desktopLink.textContent="Toka kwenye akaunti";desktopLink.href="#";}
+  if(mobileLink){mobileLink.href="#";const label=mobileLink.querySelector("small");if(label)label.textContent="Toka";}
+  const signOut=async e=>{
+    e.preventDefault();
+    if(desktopLink){desktopLink.textContent="Inatoka...";desktopLink.style.pointerEvents="none";}
+    if(mobileLink){const label=mobileLink.querySelector("small");if(label)label.textContent="Inatoka...";mobileLink.style.pointerEvents="none";}
+    const {error}=await sb.auth.signOut();
+    if(error){alert("Imeshindikana kutoka kwenye akaunti. Tafadhali jaribu tena.");if(desktopLink){desktopLink.textContent="Toka kwenye akaunti";desktopLink.style.pointerEvents="";}if(mobileLink){const label=mobileLink.querySelector("small");if(label)label.textContent="Toka";mobileLink.style.pointerEvents="";}return;}
+    location.href="./auth.html";
+  };
+  if(desktopLink)desktopLink.addEventListener("click",signOut);
+  if(mobileLink)mobileLink.addEventListener("click",signOut);
+})();
 </script><script>
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
