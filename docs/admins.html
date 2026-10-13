@@ -13,6 +13,8 @@
     .admin-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
     .admin-form-grid .full{grid-column:1/-1}
     .admin-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .small-admin-remove{background:#9b2525;color:#fff}
+    #admin-form[hidden],.panel[hidden]{display:none!important}
     .role-badge{display:inline-flex;padding:5px 9px;border-radius:999px;background:#eef4ef;font-size:11px;font-weight:700}
     .status-badge{display:inline-flex;padding:5px 9px;border-radius:999px;font-size:11px;font-weight:700}
     .status-on{background:#e9f7ee;color:#176b3a}.status-off{background:#f5eeee;color:#8a3030}
@@ -134,13 +136,38 @@
         const active = admin.is_active;
         const role = admin.role === "super_admin" ? "Super Admin" : "Admin";
         const action = admin.role === "admin"
-          ? '<button type="button" class="small-admin-toggle" data-id="' + admin.user_id + '" data-active="' + active + '">' + (active ? "Zima" : "Washa") + '</button>'
+          ? (window.currentAdminRole === "super_admin"
+              ? '<button type="button" class="small-admin-toggle" data-id="' + admin.user_id + '" data-active="' + active + '">' + (active ? "Zima" : "Washa") + '</button> <button type="button" class="small-admin-remove" data-id="' + admin.user_id + '" data-name="' + escapeHtml(admin.display_name || admin.email || "Admin") + '">Ondoa</button>'
+              : '<button type="button" class="small-admin-toggle" data-id="' + admin.user_id + '" data-active="' + active + '">' + (active ? "Zima" : "Washa") + '</button>')
           : '<span>—</span>';
         return '<tr><td>' + (index + 1) + '</td><td>' + escapeHtml(admin.display_name || "—") +
           '</td><td>' + escapeHtml(admin.email || "—") + '</td><td><span class="role-badge">' + role +
           '</span></td><td><span class="status-badge ' + (active ? "status-on" : "status-off") + '">' + (active ? "Active" : "Imezimwa") +
           '</span></td><td>' + action + '</td></tr>';
       }).join("");
+
+      document.querySelectorAll(".small-admin-remove").forEach((button) => {
+        button.addEventListener("click", async () => {
+          const adminName = button.dataset.name || "Admin";
+          if (!window.confirm("Una uhakika unataka kumwondoa " + adminName + "?")) return;
+          if (button.dataset.id === currentUserId) {
+            setMessage("Huwezi kujiondoa mwenyewe kwenye akaunti hii.");
+            return;
+          }
+          button.disabled = true;
+          try {
+            await callFunction("", {
+              method: "DELETE",
+              body: JSON.stringify({ user_id: button.dataset.id })
+            });
+            setMessage("Admin ameondolewa.", true);
+            await loadAdmins();
+          } catch (error) {
+            setMessage("Imeshindikana kumwondoa Admin: " + error.message);
+            button.disabled = false;
+          }
+        });
+      });
 
       document.querySelectorAll(".small-admin-toggle").forEach((button) => {
         button.addEventListener("click", async () => {
@@ -183,9 +210,15 @@
       const { data: { user } } = await sb.auth.getUser();
       if (!user) { window.location.href = "./admin.html"; return; }
       currentUserId = user.id;
-      document.getElementById("user-email").textContent = user.email || "";\n      document.getElementById("role-label").textContent = role?.role === "super_admin" ? "Super Admin" : "Admin";
+      document.getElementById("user-email").textContent = user.email || "";
 
       const { data: role } = await sb.from("user_roles").select("role").eq("user_id", user.id).maybeSingle();
+      window.currentAdminRole = role?.role || "";
+      document.getElementById("role-label").textContent = role?.role === "super_admin" ? "Super Admin" : "Admin";
+      if (role?.role !== "super_admin") {
+        document.getElementById("admin-form").hidden = true;
+        document.querySelector(".admin-main .panel").hidden = true;
+      }
       const { data: profile } = await sb.from("profiles").select("is_active").eq("user_id", user.id).maybeSingle();
       if (!["super_admin", "admin"].includes(role?.role) || profile?.is_active === false) {
         window.location.href = "./dashboard.html";
